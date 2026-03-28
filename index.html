@@ -216,10 +216,31 @@
       </div>
       <div class="reglement-row">
         <span style="font-size:13px;font-weight:600;color:var(--muted);">Règlement :</span>
-        <button class="reg-btn" onclick="selectReg(this)" data-val="Virement">Virement</button>
-        <button class="reg-btn" onclick="selectReg(this)" data-val="Chèque">Chèque</button>
-        <button class="reg-btn" onclick="selectReg(this)" data-val="Espèces">Espèces</button>
+        <button class="reg-btn" onclick="selectReg(this)" data-val="Virement">🏦 Virement</button>
+        <button class="reg-btn" onclick="selectReg(this)" data-val="CB (SumUp)">💳 CB – SumUp</button>
+        <button class="reg-btn" onclick="selectReg(this)" data-val="Chèque">📝 Chèque</button>
+        <button class="reg-btn" onclick="selectReg(this)" data-val="Espèces">💵 Espèces</button>
+        <button class="reg-btn" onclick="selectReg(this)" data-val="Lydia/PayByLink">📲 Lydia / Pay by Link</button>
         <button class="reg-btn" onclick="selectReg(this)" data-val="Autre">Autre</button>
+      </div>
+
+      <!-- RIB affiché si Virement sélectionné -->
+      <div id="rib-box" style="display:none;margin-top:14px;background:#EBF2FC;border:1.5px solid #1B4F8A;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#1B4F8A;margin-bottom:10px;">🏦 Coordonnées bancaires – BNP Paribas</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px;">
+          <div><span style="color:#6B7A99;font-size:12px;font-weight:600;">Titulaire</span><br><strong>SARL Starsnett Services</strong></div>
+          <div><span style="color:#6B7A99;font-size:12px;font-weight:600;">Banque</span><br><strong>BNP Paribas</strong></div>
+          <div style="grid-column:span 2;"><span style="color:#6B7A99;font-size:12px;font-weight:600;">IBAN</span><br><strong style="letter-spacing:1px;">FR76 3000 4029 5400 0100 5863 495</strong></div>
+          <div><span style="color:#6B7A99;font-size:12px;font-weight:600;">BIC</span><br><strong>BNPAFRPPXXX</strong></div>
+          <div><span style="color:#6B7A99;font-size:12px;font-weight:600;">Agence</span><br><strong>St Maur Deux Lions</strong></div>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#6B7A99;font-style:italic;">À indiquer en référence du virement : N° du devis</div>
+      </div>
+
+      <!-- SumUp affiché si CB sélectionné -->
+      <div id="sumup-box" style="display:none;margin-top:14px;background:#FFF8E7;border:1.5px solid #F5C400;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#B45309;margin-bottom:6px;">💳 Paiement par CB via SumUp</div>
+        <div style="font-size:14px;color:#1A1A2E;">Encaissement à effectuer sur le terminal <strong>SumUp</strong> au moment de la prestation ou à la signature.<br><span style="font-size:12px;color:#6B7A99;">Acompte 50% à la signature – Solde après prestation.</span></div>
       </div>
     </div>
   </div>
@@ -278,9 +299,10 @@
 </div>
 
 <!-- SEND BAR -->
-<div class="send-section">
-  <button class="btn btn-email" onclick="sendEmail()">✉️ Envoyer le devis par email</button>
-  <button class="btn btn-whatsapp" onclick="sendWhatsApp()">
+<div class="send-section" style="flex-wrap:wrap;gap:8px;">
+  <button class="btn btn-email" onclick="sendEmail()" style="flex:1;min-width:140px;">✉️ Envoyer à Starsnett</button>
+  <button class="btn" style="background:#0EA5E9;color:white;flex:1;min-width:140px;" onclick="sendCopyToClient()">📨 Copie au client</button>
+  <button class="btn btn-whatsapp" style="flex:1;min-width:140px;" onclick="sendWhatsApp()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
     Envoyer via WhatsApp
   </button>
@@ -352,6 +374,8 @@ function selectReg(btn) {
   document.querySelectorAll('.reg-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   state.reglement = btn.dataset.val;
+  document.getElementById('rib-box').style.display = btn.dataset.val === 'Virement' ? 'block' : 'none';
+  document.getElementById('sumup-box').style.display = btn.dataset.val === 'CB (SumUp)' ? 'block' : 'none';
 }
 
 function updateProgress() {
@@ -412,19 +436,34 @@ function validate(d) {
 }
 
 // ── SIGNATURE LINK ────────────────────────────────────────────────────
-function saveDevisToStorage(d) {
-  // Encode devis data in the URL itself (no server needed)
+const JSONBIN_KEY = '$2a$10$L35SYtIshzm1IJ6rhDYPqeycBZZBcuglNYp0kukuBVbQidvii5ULW';
+const JSONBIN_BIN = 'starsnett-devis';
+
+async function saveDevisToJSONBin(d) {
   const payload = {
     num: d.num, date: d.date, nom: d.nom, adresse: d.adresse,
     tel: d.tel, email: d.email, client: d.client, mission: d.mission,
     commercial: d.commercial, prestations: d.prestations,
     ht: d.ht, tva: d.tva, ttc: d.ttc, reglement: d.reglement,
-    dateInterv: d.dateInterv, notes: d.notes
+    dateInterv: d.dateInterv, notes: d.notes,
+    savedAt: new Date().toISOString()
   };
-  return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  const resp = await fetch('https://api.jsonbin.io/v3/b', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': JSONBIN_KEY,
+      'X-Bin-Name': d.num,
+      'X-Bin-Private': 'false'
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!resp.ok) throw new Error('JSONBin error');
+  const data = await resp.json();
+  return data.metadata.id; // short bin ID
 }
 
-function sendSigLink(channel) {
+async function sendSigLink(channel) {
   const d = collectData();
   if (!validate(d)) return;
 
@@ -435,9 +474,15 @@ function sendSigLink(channel) {
     showToast('⚠️ Renseignez l\'email du client'); return;
   }
 
-  const encoded = saveDevisToStorage(d);
-  // Link to signature page (same domain, signer.html)
-  const sigUrl = `https://starsnettinfo-lab.github.io/starsnett-devis/signer.html?d=${encoded}`;
+  showToast('⏳ Génération du lien...');
+  let binId;
+  try {
+    binId = await saveDevisToJSONBin(d);
+  } catch(e) {
+    showToast('❌ Erreur réseau, réessayez'); return;
+  }
+
+  const sigUrl = `https://starsnettinfo-lab.github.io/starsnett-devis/signer.html?id=${binId}`;
 
   document.getElementById('sig-link-url').textContent = sigUrl;
   document.getElementById('sig-link-box').classList.add('visible');
@@ -515,7 +560,7 @@ TARIFICATION
 Montant HT   : ${d.ht} €
 TVA (20%)    : ${d.tva} €
 TOTAL TTC    : ${d.ttc} €
-Règlement    : ${d.reglement || '—'}
+Règlement    : ${d.reglement || '—'}${d.reglement === 'Virement' ? '\nIBAN         : FR76 3000 4029 5400 0100 5863 495\nBIC          : BNPAFRPPXXX\nTitulaire    : SARL Starsnett Services' : ''}
 Acompte 50%  : ${d.ttc !== '—' ? (parseFloat(d.ttc)/2).toFixed(2) + ' €' : '—'}
 
 INTERVENTION
@@ -527,6 +572,50 @@ Devis ferme, à caractère forfaitaire.
   );
   window.location.href = `mailto:starsnettinfo@gmail.com?subject=${subject}&body=${body}`;
   showToast('✉️ Email en cours d\'ouverture…');
+}
+
+// ── COPIE EMAIL CLIENT ────────────────────────────────────────────────
+function sendCopyToClient() {
+  const d = collectData();
+  if (!validate(d)) return;
+  if (!d.email) { showToast('⚠️ Renseignez l\'email du client'); return; }
+
+  const subject = encodeURIComponent(`Votre devis Starsnett Services N°${d.num}`);
+  const rib = d.reglement === 'Virement' ? `\n\nCoordonnées bancaires pour règlement par virement :\nIBAN : FR76 3000 4029 5400 0100 5863 495\nBIC : BNPAFRPPXXX\nTitulaire : SARL Starsnett Services\nRéférence à indiquer : ${d.num}` : '';
+  const body = encodeURIComponent(
+`Bonjour ${d.nom},
+
+Veuillez trouver ci-dessous le récapitulatif de votre devis.
+
+──────────────────────────────
+DEVIS N°${d.num} – ${d.date}
+──────────────────────────────
+Adresse : ${d.adresse}
+Type : ${d.client || '—'} / ${d.mission || '—'}
+
+PRESTATIONS :
+${d.prestations.map(p => '• ' + p).join('\n')}
+
+──────────────────────────────
+Montant HT   : ${d.ht} €
+TVA (20%)    : ${d.tva} €
+TOTAL TTC    : ${d.ttc} €
+Acompte 50%  : ${d.ttc !== '—' ? (parseFloat(d.ttc)/2).toFixed(2) + ' €' : '—'}
+Règlement    : ${d.reglement || '—'}${rib}
+──────────────────────────────
+Date d'intervention : ${d.dateInterv || '—'}
+
+Devis ferme, à caractère forfaitaire.
+50% à la signature, solde juste après la prestation.
+Starsnett Services intervient en l'état.
+
+Cordialement,
+${d.commercial || 'Starsnett Services'}
+📞 01 43 77 58 69
+contact@starsnett-services.com`
+  );
+  window.location.href = `mailto:${d.email}?subject=${subject}&body=${body}`;
+  showToast('📨 Email client en cours d\'ouverture…');
 }
 
 // ── WHATSAPP DEVIS COMPLET ─────────────────────────────────────────────

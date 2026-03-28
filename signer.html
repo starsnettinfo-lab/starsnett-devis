@@ -158,14 +158,21 @@ let devisData = null;
 let sigDrawing = false;
 let sigHasSig = false;
 
+const JSONBIN_KEY = '$2a$10$L35SYtIshzm1IJ6rhDYPqeycBZZBcuglNYp0kukuBVbQidvii5ULW';
+
 // ── PARSE URL ──────────────────────────────────────────────────────────
-function loadDevis() {
+async function loadDevis() {
   try {
     const params = new URLSearchParams(window.location.search);
-    const encoded = params.get('d');
-    if (!encoded) throw new Error('no data');
-    const json = decodeURIComponent(escape(atob(encoded)));
-    devisData = JSON.parse(json);
+    const binId = params.get('id');
+    if (!binId) throw new Error('no id');
+
+    const resp = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    if (!resp.ok) throw new Error('fetch error');
+    const data = await resp.json();
+    devisData = data.record;
     renderDevis();
     document.getElementById('main-content').style.display = 'block';
     initSig();

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Signature – Starsnett Services</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1B4F8A; --blue-light: #EBF2FC; --yellow: #F5C400;
+    --green: #16A34A; --green-light: #DCFCE7;
+    --grey: #F7F8FA; --border: #D1D9E6;
+    --text: #1A1A2E; --muted: #6B7A99; --white: #FFFFFF;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #EEF3FA; color: var(--text); min-height: 100vh; }
+
+  .header { background: var(--blue); color: white; padding: 18px 20px; text-align: center; }
+  .header .star { font-size: 28px; color: var(--yellow); display: block; margin-bottom: 4px; }
+  .header h1 { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 2px; }
+  .header p { font-size: 13px; opacity: 0.7; }
+
+  .main { max-width: 600px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  .card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 16px rgba(27,79,138,0.08); }
+  .card-header { background: var(--blue); color: white; padding: 12px 18px; font-weight: 600; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+  .card-body { padding: 18px; }
+
+  /* DEVIS RECAP */
+  .devis-num { font-size: 22px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+  .devis-date { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .info-row { display: flex; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+  .info-label { font-weight: 600; color: var(--muted); min-width: 110px; font-size: 13px; }
+  .prest-recap { margin: 14px 0; }
+  .prest-recap-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 8px; background: var(--grey); margin-bottom: 6px; font-size: 14px; }
+  .prest-recap-item::before { content: '✓'; color: var(--blue); font-weight: 700; flex-shrink: 0; }
+
+  .montant-box { background: var(--blue); color: white; border-radius: 10px; padding: 16px; text-align: center; margin-top: 14px; }
+  .montant-label { font-size: 12px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .montant-val { font-size: 32px; font-weight: 700; color: var(--yellow); }
+  .montant-sub { font-size: 12px; opacity: 0.6; margin-top: 4px; }
+
+  /* MENTIONS */
+  .mentions { font-size: 12px; color: var(--muted); line-height: 1.6; padding: 12px 0; border-top: 1px solid var(--border); margin-top: 14px; }
+
+  /* SIGNATURE ZONE */
+  .sig-instruction { font-size: 14px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .sig-wrapper { position: relative; border: 2px dashed var(--border); border-radius: 12px; background: #FAFBFF; touch-action: none; overflow: hidden; }
+  .sig-wrapper.has-sig { border: 2px solid var(--blue); border-style: solid; background: white; }
+  #sig-canvas { display: block; width: 100%; height: 180px; cursor: crosshair; }
+  .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: var(--muted); font-size: 15px; pointer-events: none; text-align: center; transition: opacity 0.2s; }
+  .sig-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .sig-clear { background: none; border: 1.5px solid var(--border); border-radius: 7px; padding: 7px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .sig-clear:hover { border-color: #DC2626; color: #DC2626; }
+  .sig-status { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .sig-status.signed { color: var(--green); font-weight: 600; }
+
+  /* CONFIRM BTN */
+  .confirm-btn { width: 100%; padding: 18px; background: var(--blue); color: white; border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.18s; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .confirm-btn:hover { background: #163F70; }
+  .confirm-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  .confirm-btn:active { transform: scale(0.98); }
+
+  /* SUCCESS */
+  .success-screen { display: none; text-align: center; padding: 40px 20px; }
+  .success-screen.show { display: block; }
+  .success-icon { font-size: 72px; margin-bottom: 16px; }
+  .success-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--green); margin-bottom: 10px; }
+  .success-sub { font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+  .success-num { background: var(--green-light); border: 1px solid var(--green); border-radius: 10px; padding: 14px; font-size: 14px; color: var(--green); font-weight: 600; }
+
+  /* ERROR */
+  .error-screen { display: none; text-align: center; padding: 60px 20px; }
+  .error-screen.show { display: block; }
+  .error-icon { font-size: 60px; margin-bottom: 16px; }
+  .error-title { font-size: 20px; font-weight: 700; color: #DC2626; margin-bottom: 10px; }
+  .error-sub { font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="star">★</span>
+  <h1>Starsnett Services</h1>
+  <p>Signature électronique de devis</p>
+</div>
+
+<!-- ERROR STATE -->
+<div class="error-screen" id="error-screen">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">Lien invalide ou expiré</div>
+  <div class="error-sub">Ce lien de signature n'est pas valide.<br>Contactez votre commercial Starsnett.</div>
+</div>
+
+<!-- SUCCESS STATE -->
+<div class="success-screen" id="success-screen">
+  <div class="success-icon">✅</div>
+  <div class="success-title">Devis signé !</div>
+  <div class="success-sub">Votre signature a bien été enregistrée.<br>Starsnett Services va vous recontacter prochainement.</div>
+  <div class="success-num" id="success-num"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="main-content" style="display:none;">
+
+  <!-- RECAP DEVIS -->
+  <div class="card">
+    <div class="card-header">📋 Votre devis</div>
+    <div class="card-body">
+      <div class="devis-num" id="d-num"></div>
+      <div class="devis-date" id="d-date"></div>
+      <div class="info-row"><span class="info-label">Client</span><span id="d-nom"></span></div>
+      <div class="info-row"><span class="info-label">Adresse</span><span id="d-adresse"></span></div>
+      <div class="info-row"><span class="info-label">Type</span><span id="d-type"></span></div>
+      <div class="info-row"><span class="info-label">Commercial</span><span id="d-commercial"></span></div>
+      <div class="info-row"><span class="info-label">Intervention</span><span id="d-date-interv"></span></div>
+
+      <div class="prest-recap" id="d-prestations"></div>
+
+      <div class="montant-box">
+        <div class="montant-label">Montant total TTC</div>
+        <div class="montant-val" id="d-ttc"></div>
+        <div class="montant-sub" id="d-acompte"></div>
+      </div>
+
+      <div class="mentions">
+        Devis ferme, à caractère forfaitaire. Starsnett Services intervient en l'état.
+        Nous nous déchargeons de toute responsabilité en cas de dommage n'étant pas de notre fait.
+        50% à la signature, solde juste après la prestation.
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGNATURE -->
+  <div class="card">
+    <div class="card-header">✍️ Votre signature</div>
+    <div class="card-body">
+      <p class="sig-instruction">En signant, vous acceptez les termes du devis ci-dessus.<br>Signez dans la zone avec votre doigt ou votre stylet.</p>
+      <div class="sig-wrapper" id="sig-wrapper">
+        <canvas id="sig-canvas"></canvas>
+        <div class="sig-placeholder" id="sig-placeholder">✍️ Signez ici</div>
+      </div>
+      <div class="sig-actions">
+        <div class="sig-status" id="sig-status">○ Zone de signature vide</div>
+        <button class="sig-clear" onclick="clearSig()">✕ Effacer</button>
+      </div>
+      <button class="confirm-btn" id="confirm-btn" onclick="confirmSignature()" disabled>
+        ✅ Valider et signer le devis
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let devisData = null;
+let sigDrawing = false;
+let sigHasSig = false;
+
+// ── PARSE URL ──────────────────────────────────────────────────────────
+function loadDevis() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get('d');
+    if (!encoded) throw new Error('no data');
+    const json = decodeURIComponent(escape(atob(encoded)));
+    devisData = JSON.parse(json);
+    renderDevis();
+    document.getElementById('main-content').style.display = 'block';
+    initSig();
+  } catch(e) {
+    document.getElementById('error-screen').classList.add('show');
+  }
+}
+
+function renderDevis() {
+  const d = devisData;
+  document.getElementById('d-num').textContent = 'Devis N°' + d.num;
+  document.getElementById('d-date').textContent = 'Établi le ' + d.date;
+  document.getElementById('d-nom').textContent = d.nom;
+  document.getElementById('d-adresse').textContent = d.adresse;
+  document.getElementById('d-type').textContent = (d.client || '—') + ' / ' + (d.mission || '—');
+  document.getElementById('d-commercial').textContent = d.commercial || '—';
+  document.getElementById('d-date-interv').textContent = d.dateInterv || '—';
+  document.getElementById('d-ttc').textContent = d.ttc + ' €';
+  if (d.ttc && d.ttc !== '—') {
+    document.getElementById('d-acompte').textContent = 'Acompte à la signature : ' + (parseFloat(d.ttc)/2).toFixed(2) + ' €';
+  }
+  const prestContainer = document.getElementById('d-prestations');
+  d.prestations.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'prest-recap-item';
+    el.textContent = p;
+    prestContainer.appendChild(el);
+  });
+}
+
+// ── SIGNATURE ──────────────────────────────────────────────────────────
+function initSig() {
+  const canvas = document.getElementById('sig-canvas');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = 180 * window.devicePixelRatio;
+  canvas.style.height = '180px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.strokeStyle = '#1B4F8A';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - rect.left), y: (src.clientY - rect.top) };
+  }
+  function startDraw(e) {
+    e.preventDefault(); sigDrawing = true;
+    const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    document.getElementById('sig-placeholder').style.opacity = '0';
+  }
+  function draw(e) {
+    if (!sigDrawing) return; e.preventDefault();
+    const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+  }
+  function endDraw() {
+    if (!sigDrawing) return; sigDrawing = false; sigHasSig = true;
+    document.getElementById('sig-wrapper').classList.add('has-sig');
+    document.getElementById('sig-status').textContent = '✓ Signature enregistrée';
+    document.getElementById('sig-status').className = 'sig-status signed';
+    document.getElementById('confirm-btn').disabled = false;
+  }
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('touchstart', startDraw, {passive:false});
+  canvas.addEventListener('touchmove', draw, {passive:false});
+  canvas.addEventListener('touchend', endDraw);
+}
+
+function clearSig() {
+  const canvas = document.getElementById('sig-canvas');
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  sigHasSig = false;
+  document.getElementById('sig-wrapper').classList.remove('has-sig');
+  document.getElementById('sig-placeholder').style.opacity = '1';
+  document.getElementById('sig-status').textContent = '○ Zone de signature vide';
+  document.getElementById('sig-status').className = 'sig-status';
+  document.getElementById('confirm-btn').disabled = true;
+}
+
+// ── CONFIRM & NOTIFY ───────────────────────────────────────────────────
+function confirmSignature() {
+  if (!sigHasSig) return;
+  const btn = document.getElementById('confirm-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Envoi en cours…';
+
+  const canvas = document.getElementById('sig-canvas');
+  const sigDataUrl = canvas.toDataURL('image/png');
+  const d = devisData;
+  const now = new Date().toLocaleString('fr-FR');
+
+  // Send notification email to Starsnett
+  const subject = encodeURIComponent(`✅ Devis ${d.num} SIGNÉ – ${d.nom}`);
+  const body = encodeURIComponent(
+`DEVIS SIGNÉ ÉLECTRONIQUEMENT
+════════════════════════════════
+Devis N°     : ${d.num}
+Signé le     : ${now}
+Client       : ${d.nom}
+Téléphone    : ${d.tel}
+Email        : ${d.email || '—'}
+Adresse      : ${d.adresse}
+Type         : ${d.client} / ${d.mission}
+Commercial   : ${d.commercial || '—'}
+
+PRESTATIONS
+${d.prestations.map(p => '✓ ' + p).join('\n')}
+
+MONTANT TTC  : ${d.ttc} €
+Règlement    : ${d.reglement || '—'}
+Acompte 50%  : ${d.ttc !== '—' ? (parseFloat(d.ttc)/2).toFixed(2) + ' €' : '—'}
+
+Intervention : ${d.dateInterv || '—'}
+
+Devis ferme, à caractère forfaitaire.
+✅ Signature électronique validée par le client.
+`
+  );
+
+  // Open email to notify admin
+  window.location.href = `mailto:starsnettinfo@gmail.com?subject=${subject}&body=${body}`;
+
+  // Show success screen
+  setTimeout(() => {
+    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('success-num').textContent = `Devis N°${d.num} – ${d.nom} – ${now}`;
+    document.getElementById('success-screen').classList.add('show');
+    window.scrollTo(0,0);
+  }, 1200);
+}
+
+loadDevis();
+</script>
+</body>
+</html>

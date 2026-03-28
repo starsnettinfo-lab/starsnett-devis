@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Devis – Starsnett Services</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1B4F8A;
+    --blue-light: #EBF2FC;
+    --blue-mid: #2E6DAD;
+    --yellow: #F5C400;
+    --yellow-light: #FFFBEA;
+    --green: #16A34A;
+    --green-light: #DCFCE7;
+    --red: #DC2626;
+    --grey: #F7F8FA;
+    --border: #D1D9E6;
+    --text: #1A1A2E;
+    --muted: #6B7A99;
+    --white: #FFFFFF;
+    --shadow: 0 2px 16px rgba(27,79,138,0.10);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #EEF3FA; color: var(--text); min-height: 100vh; padding-bottom: 100px; }
+
+  /* HEADER */
+  .app-header { background: var(--blue); color: white; padding: 18px 24px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(27,79,138,0.25); }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-star { font-size: 26px; color: var(--yellow); }
+  .logo-text { font-family: 'DM Serif Display', serif; font-size: 20px; }
+  .logo-sub { font-size: 11px; opacity: 0.7; font-weight: 300; }
+  .devis-num { text-align: right; font-size: 12px; opacity: 0.8; }
+  .devis-num strong { display: block; font-size: 18px; opacity: 1; color: var(--yellow); }
+
+  .progress-bar { height: 4px; background: rgba(255,255,255,0.2); position: sticky; top: 72px; z-index: 99; }
+  .progress-fill { height: 100%; background: var(--yellow); transition: width 0.4s ease; width: 0%; }
+
+  .main { max-width: 860px; margin: 0 auto; padding: 20px 16px; }
+
+  /* CARDS */
+  .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden; border: 1px solid var(--border); }
+  .card-header { background: var(--blue); color: white; padding: 12px 20px; font-weight: 600; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+  .card-body { padding: 20px; }
+
+  /* TOGGLE BUTTONS */
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .type-grid:last-child { margin-bottom: 0; }
+  .toggle-btn { border: 2px solid var(--border); background: var(--grey); border-radius: 10px; padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.18s; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .toggle-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+  .toggle-btn .check { font-size: 18px; opacity: 0; transition: opacity 0.18s; }
+  .toggle-btn.active .check { opacity: 1; }
+
+  /* FIELDS */
+  .form-grid { display: grid; gap: 14px; }
+  .form-grid-2 { grid-template-columns: 1fr 1fr; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  .field input, .field textarea, .field select { width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 11px 14px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); background: var(--grey); transition: border-color 0.18s, background 0.18s; outline: none; resize: none; }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--blue); background: var(--white); }
+  .field textarea { min-height: 72px; }
+
+  /* PRESTATIONS */
+  .prest-list { display: flex; flex-direction: column; gap: 6px; }
+  .prest-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--grey); cursor: pointer; transition: all 0.18s; user-select: none; }
+  .prest-item:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+  .prest-item.checked { border-color: var(--blue); background: var(--blue-light); }
+  .prest-checkbox { width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 5px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; background: var(--white); transition: all 0.18s; font-size: 14px; color: white; }
+  .prest-item.checked .prest-checkbox { background: var(--blue); border-color: var(--blue); }
+  .prest-label { font-size: 15px; line-height: 1.4; }
+  .prest-label small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .lessivage-sub { display: none; margin-top: 8px; padding: 10px 14px; background: var(--yellow-light); border: 1.5px solid var(--yellow); border-radius: 8px; align-items: center; gap: 10px; cursor: pointer; }
+  .lessivage-sub.visible { display: flex; }
+
+  /* TARIF */
+  .tarif-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .tarif-box { background: var(--grey); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .tarif-box label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); display: block; margin-bottom: 6px; }
+  .tarif-box input { width: 100%; border: none; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 20px; font-weight: 600; color: var(--text); outline: none; }
+  .tarif-box.total { background: var(--blue); border-color: var(--blue); grid-column: span 3; }
+  .tarif-box.total label { color: rgba(255,255,255,0.7); }
+  .tarif-box.total input { color: var(--yellow); font-size: 26px; }
+  .reglement-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+  .reg-btn { border: 1.5px solid var(--border); background: var(--grey); border-radius: 8px; padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.18s; }
+  .reg-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); font-weight: 600; }
+
+  /* SEND SIGNATURE */
+  .sig-send-box { border: 2px dashed var(--border); border-radius: 12px; padding: 20px; text-align: center; background: var(--grey); }
+  .sig-send-box p { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+  .sig-send-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .sig-send-btn { border: none; border-radius: 10px; padding: 14px 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.18s; color: white; }
+  .sig-send-btn:active { transform: scale(0.97); }
+  .btn-wa { background: #25D366; }
+  .btn-wa:hover { background: #1EAD53; }
+  .btn-mail-sig { background: var(--blue); }
+  .btn-mail-sig:hover { background: #163F70; }
+  .sig-link-box { display: none; background: white; border: 1.5px solid var(--green); border-radius: 10px; padding: 14px; margin-top: 12px; }
+  .sig-link-box.visible { display: block; }
+  .sig-link-box p { font-size: 13px; color: var(--green); font-weight: 600; margin-bottom: 8px; }
+  .sig-link-url { font-size: 12px; color: var(--muted); word-break: break-all; background: var(--grey); padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; }
+  .copy-btn { border: 1.5px solid var(--border); background: var(--grey); border-radius: 7px; padding: 6px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; }
+
+  /* SEND BAR */
+  .send-section { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); padding: 14px 16px; display: flex; gap: 10px; box-shadow: 0 -4px 24px rgba(27,79,138,0.12); z-index: 100; }
+  @media (min-width: 860px) { .send-section { left: 50%; transform: translateX(-50%); width: 860px; border-radius: 14px 14px 0 0; } }
+  .btn { flex: 1; padding: 15px 10px; border: none; border-radius: 11px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.18s; }
+  .btn-email { background: var(--blue); color: white; }
+  .btn-whatsapp { background: #25D366; color: white; }
+  .btn:active { transform: scale(0.97); }
+
+  .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--text); color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .reset-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; text-decoration: underline; margin-top: 8px; display: block; width: 100%; text-align: center; padding: 8px; }
+
+  @media (max-width: 600px) {
+    .tarif-grid { grid-template-columns: 1fr 1fr; }
+    .tarif-box.total { grid-column: span 2; }
+    .form-grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <span class="logo-star">★</span>
+    <div>
+      <div class="logo-text">Starsnett Services</div>
+      <div class="logo-sub">Formulaire de devis commercial</div>
+    </div>
+  </div>
+  <div class="devis-num">
+    <strong id="num-display">#—</strong>
+    <span id="date-display"></span>
+  </div>
+</header>
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+<div class="toast" id="toast"></div>
+
+<div class="main">
+
+  <!-- TYPE -->
+  <div class="card">
+    <div class="card-header">🏷️ Type de mission</div>
+    <div class="card-body">
+      <div class="type-grid">
+        <button class="toggle-btn" data-group="client" data-val="Particulier" onclick="selectType(this)"><span class="check">✓</span> Particulier</button>
+        <button class="toggle-btn" data-group="client" data-val="Professionnel" onclick="selectType(this)"><span class="check">✓</span> Professionnel</button>
+      </div>
+      <div class="type-grid">
+        <button class="toggle-btn" data-group="mission" data-val="Ponctuel" onclick="selectType(this)"><span class="check">✓</span> Ponctuel</button>
+        <button class="toggle-btn" data-group="mission" data-val="Contrat" onclick="selectType(this)"><span class="check">✓</span> Contrat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT -->
+  <div class="card">
+    <div class="card-header">👤 Informations client</div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field"><label>Nom / Société *</label><input type="text" id="client-nom" placeholder="Ex: M. Dupont / Société XYZ" oninput="updateProgress()"></div>
+        <div class="form-grid form-grid-2">
+          <div class="field"><label>Téléphone * (pour SMS/WA)</label><input type="tel" id="client-tel" placeholder="06 xx xx xx xx" oninput="updateProgress()"></div>
+          <div class="field"><label>Email (pour lien signature)</label><input type="email" id="client-email" placeholder="client@email.com" oninput="updateProgress()"></div>
+        </div>
+        <div class="field"><label>Adresse du site *</label><input type="text" id="client-adresse" placeholder="N° rue, code postal, ville" oninput="updateProgress()"></div>
+        <div class="field"><label>Recommandé par</label><input type="text" id="client-reco" placeholder="Nom du prescripteur / source"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRESTATIONS -->
+  <div class="card">
+    <div class="card-header">🧹 Prestations</div>
+    <div class="card-body">
+      <div class="prest-list" id="prest-list">
+        <div class="prest-item" onclick="togglePrest(this)" data-id="remise">
+          <div class="prest-checkbox">✓</div>
+          <div class="prest-label">Remise en état complet<small>Sols, vitres, cuisine, SdB, portes, interrupteurs, radiateurs</small></div>
+        </div>
+        <div class="lessivage-sub" id="lessivage-sub" onclick="toggleLessivage(this)">
+          <div class="prest-checkbox" id="lessivage-check">✓</div>
+          <span style="font-size:14px;font-weight:500;">Inclure le lessivage des murs</span>
+        </div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="sols"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des sols</div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="vitres"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des vitres et baies vitrées</div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="balcons"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des balcons et terrasses</div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="cuisine"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage de la cuisine</div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="sanitaires"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des sanitaires (WC et salle de bain)</div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="parties-communes"><div class="prest-checkbox">✓</div><div class="prest-label">Parties communes / immeuble / copropriété</div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="etat-lieux"><div class="prest-checkbox">✓</div><div class="prest-label">État des lieux<small>Entrée ou sortie</small></div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="chantier"><div class="prest-checkbox">✓</div><div class="prest-label">Fin de chantier</div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="sinistre"><div class="prest-checkbox">✓</div><div class="prest-label">Après sinistre<small>Incendie / dégât des eaux</small></div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="moquette"><div class="prest-checkbox">✓</div><div class="prest-label">Shampouinage de la moquette</div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="debarras"><div class="prest-checkbox">✓</div><div class="prest-label">Débarras des encombrants</div></div>
+        <div class="prest-item" onclick="togglePrest(this)" data-id="lessivage"><div class="prest-checkbox">✓</div><div class="prest-label">Lessivage des murs</div></div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>Prestations supplémentaires</label>
+        <textarea id="prest-supp" placeholder="Préciser ici toute prestation hors liste..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- TARIFICATION -->
+  <div class="card">
+    <div class="card-header">💶 Tarification</div>
+    <div class="card-body">
+      <div class="tarif-grid">
+        <div class="tarif-box"><label>Montant HT</label><input type="number" id="montant-ht" placeholder="0.00" step="0.01" oninput="calcTTC()"> €</div>
+        <div class="tarif-box"><label>TVA 20%</label><input type="number" id="montant-tva" placeholder="0.00" readonly style="color:var(--muted)"> €</div>
+        <div class="tarif-box total"><label>MONTANT TTC</label><input type="number" id="montant-ttc" placeholder="0.00" readonly> €</div>
+      </div>
+      <div class="reglement-row">
+        <span style="font-size:13px;font-weight:600;color:var(--muted);">Règlement :</span>
+        <button class="reg-btn" onclick="selectReg(this)" data-val="Virement">Virement</button>
+        <button class="reg-btn" onclick="selectReg(this)" data-val="Chèque">Chèque</button>
+        <button class="reg-btn" onclick="selectReg(this)" data-val="Espèces">Espèces</button>
+        <button class="reg-btn" onclick="selectReg(this)" data-val="Autre">Autre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATE & NOTES -->
+  <div class="card">
+    <div class="card-header">📅 Date et lieu d'intervention</div>
+    <div class="card-body">
+      <div class="form-grid form-grid-2">
+        <div class="field"><label>Date souhaitée</label><input type="date" id="interv-date"></div>
+        <div class="field"><label>Heure</label><input type="time" id="interv-heure"></div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>Observations / Notes commerciales</label>
+        <textarea id="notes" placeholder="Difficultés d'accès, matériel particulier, remarques client..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMERCIAL -->
+  <div class="card">
+    <div class="card-header">👔 Commercial</div>
+    <div class="card-body">
+      <div class="type-grid">
+        <button class="toggle-btn" data-group="commercial" data-val="Oumar Kébé" onclick="selectType(this)"><span class="check">✓</span> Oumar Kébé</button>
+        <button class="toggle-btn" data-group="commercial" data-val="H. Nimaga" onclick="selectType(this)"><span class="check">✓</span> H. Nimaga</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGNATURE PAR LIEN -->
+  <div class="card">
+    <div class="card-header">✍️ Signature électronique client</div>
+    <div class="card-body">
+      <div class="sig-send-box">
+        <p>Générer un lien de signature personnalisé à envoyer au client :<br><small>Le client signe depuis son propre téléphone, vous recevez la confirmation.</small></p>
+        <div class="sig-send-grid">
+          <button class="sig-send-btn btn-wa" onclick="sendSigLink('whatsapp')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Lien via WhatsApp
+          </button>
+          <button class="sig-send-btn btn-mail-sig" onclick="sendSigLink('email')">
+            ✉️ Lien via Email
+          </button>
+        </div>
+        <div class="sig-link-box" id="sig-link-box">
+          <p>✅ Lien de signature généré et envoyé au client</p>
+          <div class="sig-link-url" id="sig-link-url"></div>
+          <button class="copy-btn" onclick="copyLink()">📋 Copier le lien</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetForm()">🗑️ Réinitialiser le formulaire</button>
+</div>
+
+<!-- SEND BAR -->
+<div class="send-section">
+  <button class="btn btn-email" onclick="sendEmail()">✉️ Envoyer le devis par email</button>
+  <button class="btn btn-whatsapp" onclick="sendWhatsApp()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    Envoyer via WhatsApp
+  </button>
+</div>
+
+<script>
+const state = { client:'', mission:'', commercial:'', reglement:'', lessivage:false };
+let currentDevisId = null;
+
+function init() {
+  const now = new Date();
+  const initial = state.commercial === 'Oumar Kébé' ? 'OK' : state.commercial === 'H. Nimaga' ? 'HN' : 'XX';
+  currentDevisId = initial + '-' + now.getFullYear().toString().slice(2) +
+    String(now.getMonth()+1).padStart(2,'0') +
+    String(now.getDate()).padStart(2,'0') + '-' +
+    String(Math.floor(Math.random()*9000)+1000);
+  document.getElementById('num-display').textContent = '#' + currentDevisId;
+  document.getElementById('date-display').textContent =
+    now.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+  document.getElementById('interv-date').value = now.toISOString().split('T')[0];
+  updateProgress();
+}
+
+function selectType(btn) {
+  const group = btn.dataset.group;
+  document.querySelectorAll(`[data-group="${group}"]`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state[group] = btn.dataset.val;
+  // Regenerate devis number when commercial changes
+  if (group === 'commercial') {
+    const now = new Date();
+    const initial = state.commercial === 'Oumar Kébé' ? 'OK' : 'HN';
+    currentDevisId = initial + '-' + now.getFullYear().toString().slice(2) +
+      String(now.getMonth()+1).padStart(2,'0') +
+      String(now.getDate()).padStart(2,'0') + '-' +
+      String(Math.floor(Math.random()*9000)+1000);
+    document.getElementById('num-display').textContent = '#' + currentDevisId;
+  }
+  updateProgress();
+}
+
+function togglePrest(item) {
+  item.classList.toggle('checked');
+  if (item.dataset.id === 'remise') {
+    const sub = document.getElementById('lessivage-sub');
+    item.classList.contains('checked') ? sub.classList.add('visible') : sub.classList.remove('visible');
+  }
+  updateProgress();
+}
+
+function toggleLessivage(el) {
+  el.classList.toggle('checked-sub');
+  state.lessivage = el.classList.contains('checked-sub');
+  const chk = document.getElementById('lessivage-check');
+  chk.style.background = state.lessivage ? '#1B4F8A' : '';
+  chk.style.borderColor = state.lessivage ? '#1B4F8A' : '';
+  chk.style.color = state.lessivage ? 'white' : '';
+}
+
+function calcTTC() {
+  const ht = parseFloat(document.getElementById('montant-ht').value) || 0;
+  const tva = ht * 0.20;
+  document.getElementById('montant-tva').value = tva > 0 ? tva.toFixed(2) : '';
+  document.getElementById('montant-ttc').value = ht > 0 ? (ht + tva).toFixed(2) : '';
+  updateProgress();
+}
+
+function selectReg(btn) {
+  document.querySelectorAll('.reg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.reglement = btn.dataset.val;
+}
+
+function updateProgress() {
+  let score = 0;
+  if (state.client) score++;
+  if (state.mission) score++;
+  if (document.getElementById('client-nom').value.trim()) score++;
+  if (document.getElementById('client-adresse').value.trim()) score++;
+  if (document.getElementById('montant-ht').value) score++;
+  document.getElementById('progress').style.width = (score/5*100) + '%';
+}
+
+function collectData() {
+  const prestations = [];
+  document.querySelectorAll('.prest-item.checked').forEach(item => {
+    const label = item.querySelector('.prest-label').childNodes[0].textContent.trim();
+    if (item.dataset.id === 'remise' && state.lessivage) {
+      prestations.push(label + ' (avec lessivage des murs)');
+    } else {
+      prestations.push(label);
+    }
+  });
+  const supp = document.getElementById('prest-supp').value.trim();
+  if (supp) prestations.push('Prestations supp. : ' + supp);
+  const dateVal = document.getElementById('interv-date').value;
+  const heureVal = document.getElementById('interv-heure').value;
+  let dateStr = '';
+  if (dateVal) {
+    dateStr = new Date(dateVal + 'T12:00:00').toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    if (heureVal) dateStr += ' à ' + heureVal;
+  }
+  return {
+    num: currentDevisId,
+    date: document.getElementById('date-display').textContent,
+    client: state.client, mission: state.mission, commercial: state.commercial,
+    nom: document.getElementById('client-nom').value.trim(),
+    tel: document.getElementById('client-tel').value.trim(),
+    email: document.getElementById('client-email').value.trim(),
+    adresse: document.getElementById('client-adresse').value.trim(),
+    reco: document.getElementById('client-reco').value.trim(),
+    prestations,
+    ht: document.getElementById('montant-ht').value || '—',
+    tva: document.getElementById('montant-tva').value || '—',
+    ttc: document.getElementById('montant-ttc').value || '—',
+    reglement: state.reglement,
+    dateInterv: dateStr,
+    notes: document.getElementById('notes').value.trim(),
+  };
+}
+
+function validate(d) {
+  if (!d.nom) { showToast('⚠️ Merci d\'indiquer le nom du client'); return false; }
+  if (!d.adresse) { showToast('⚠️ Merci d\'indiquer l\'adresse du site'); return false; }
+  if (!d.tel) { showToast('⚠️ Merci d\'indiquer le téléphone'); return false; }
+  if (d.prestations.length === 0) { showToast('⚠️ Sélectionner au moins une prestation'); return false; }
+  if (!document.getElementById('montant-ht').value) { showToast('⚠️ Merci d\'indiquer le montant HT'); return false; }
+  return true;
+}
+
+// ── SIGNATURE LINK ────────────────────────────────────────────────────
+function saveDevisToStorage(d) {
+  // Encode devis data in the URL itself (no server needed)
+  const payload = {
+    num: d.num, date: d.date, nom: d.nom, adresse: d.adresse,
+    tel: d.tel, email: d.email, client: d.client, mission: d.mission,
+    commercial: d.commercial, prestations: d.prestations,
+    ht: d.ht, tva: d.tva, ttc: d.ttc, reglement: d.reglement,
+    dateInterv: d.dateInterv, notes: d.notes
+  };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+}
+
+function sendSigLink(channel) {
+  const d = collectData();
+  if (!validate(d)) return;
+
+  if (channel === 'whatsapp' && !d.tel) {
+    showToast('⚠️ Renseignez le téléphone du client'); return;
+  }
+  if (channel === 'email' && !d.email) {
+    showToast('⚠️ Renseignez l\'email du client'); return;
+  }
+
+  const encoded = saveDevisToStorage(d);
+  // Link to signature page (same domain, signer.html)
+  const sigUrl = `https://starsnettinfo-lab.github.io/starsnett-devis/signer.html?d=${encoded}`;
+
+  document.getElementById('sig-link-url').textContent = sigUrl;
+  document.getElementById('sig-link-box').classList.add('visible');
+
+  if (channel === 'whatsapp') {
+    const tel = d.tel.replace(/\s/g,'');
+    const msg = encodeURIComponent(
+`Bonjour ${d.nom},
+
+Votre devis Starsnett Services *${d.num}* est prêt.
+
+Montant TTC : *${d.ttc} €*
+
+Merci de le consulter et de le signer électroniquement en cliquant sur ce lien :
+${sigUrl}
+
+Cordialement,
+${d.commercial || 'Starsnett Services'}
+📞 01 43 77 58 69`
+    );
+    window.open(`https://wa.me/${tel.startsWith('0') ? '33'+tel.slice(1) : tel}?text=${msg}`, '_blank');
+    showToast('💬 WhatsApp ouvert avec le lien de signature');
+  } else {
+    const subject = encodeURIComponent(`Votre devis Starsnett N°${d.num} – À signer`);
+    const body = encodeURIComponent(
+`Bonjour ${d.nom},
+
+Votre devis Starsnett Services N°${d.num} est prêt.
+
+Montant TTC : ${d.ttc} €
+Prestations : ${d.prestations.join(', ')}
+
+Merci de consulter et signer votre devis en cliquant sur le lien ci-dessous :
+${sigUrl}
+
+Devis ferme, à caractère forfaitaire.
+50% à la signature, solde juste après la prestation.
+
+Cordialement,
+${d.commercial || 'Starsnett Services'}
+Tél : 01 43 77 58 69
+contact@starsnett-services.com`
+    );
+    window.location.href = `mailto:${d.email}?subject=${subject}&body=${body}`;
+    showToast('✉️ Email de signature ouvert');
+  }
+}
+
+function copyLink() {
+  const url = document.getElementById('sig-link-url').textContent;
+  navigator.clipboard.writeText(url).then(() => showToast('📋 Lien copié !'));
+}
+
+// ── EMAIL DEVIS COMPLET ────────────────────────────────────────────────
+function sendEmail() {
+  const d = collectData();
+  if (!validate(d)) return;
+  const subject = encodeURIComponent(`[Devis ${d.num}] ${d.nom} – ${d.client} ${d.mission}`);
+  const body = encodeURIComponent(
+`DEVIS ${d.num} – Starsnett Services
+Établi le : ${d.date}  |  Commercial : ${d.commercial || '—'}
+
+CLIENT
+Type         : ${d.client || '—'} / ${d.mission || '—'}
+Nom / Société: ${d.nom}
+Adresse site : ${d.adresse}
+Téléphone    : ${d.tel}
+Email        : ${d.email || '—'}
+Recommandé par: ${d.reco || '—'}
+
+PRESTATIONS
+${d.prestations.map(p => '✓ ' + p).join('\n')}
+
+TARIFICATION
+Montant HT   : ${d.ht} €
+TVA (20%)    : ${d.tva} €
+TOTAL TTC    : ${d.ttc} €
+Règlement    : ${d.reglement || '—'}
+Acompte 50%  : ${d.ttc !== '—' ? (parseFloat(d.ttc)/2).toFixed(2) + ' €' : '—'}
+
+INTERVENTION
+Date / Heure : ${d.dateInterv || '—'}
+Notes        : ${d.notes || '—'}
+
+Devis ferme, à caractère forfaitaire.
+50% à la signature – Solde juste après la prestation.`
+  );
+  window.location.href = `mailto:starsnettinfo@gmail.com?subject=${subject}&body=${body}`;
+  showToast('✉️ Email en cours d\'ouverture…');
+}
+
+// ── WHATSAPP DEVIS COMPLET ─────────────────────────────────────────────
+function sendWhatsApp() {
+  const d = collectData();
+  if (!validate(d)) return;
+  const msg = encodeURIComponent(
+`*DEVIS ${d.num} – Starsnett*
+📅 ${d.date} | 👔 ${d.commercial || '—'}
+
+*CLIENT*
+${d.client || '—'} / ${d.mission || '—'}
+📛 ${d.nom}
+📍 ${d.adresse}
+📞 ${d.tel}
+${d.reco ? '🔗 Via : ' + d.reco : ''}
+
+*PRESTATIONS*
+${d.prestations.map(p => '✅ ' + p).join('\n')}
+
+*TARIF*
+HT : ${d.ht} € | TVA : ${d.tva} € | *TTC : ${d.ttc} €*
+Règlement : ${d.reglement || '—'}
+
+📆 ${d.dateInterv || '—'}
+${d.notes ? '📝 ' + d.notes : ''}
+
+_Devis ferme, à caractère forfaitaire._`
+  );
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
+  showToast('💬 WhatsApp ouvert…');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function resetForm() {
+  if (!confirm('Effacer tout le formulaire ?')) return;
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.prest-item').forEach(b => b.classList.remove('checked'));
+  document.querySelectorAll('.reg-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+  document.getElementById('lessivage-sub').classList.remove('visible');
+  document.getElementById('sig-link-box').classList.remove('visible');
+  state.client=''; state.mission=''; state.commercial=''; state.reglement=''; state.lessivage=false;
+  calcTTC(); init();
+  showToast('🗑️ Formulaire réinitialisé');
+}
+
+init();
+</script>
+</body>
+</html>

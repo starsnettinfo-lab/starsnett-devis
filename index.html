@@ -119,6 +119,17 @@
     .tarif-box.total { grid-column: span 2; }
     .form-grid-2 { grid-template-columns: 1fr; }
   }
+
+  /* ONGLETS PRESTATIONS */
+  .tab-bar { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+  .tab-btn { flex: 1; padding: 12px 8px; background: none; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.18s; }
+  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-btn.active.pro { color: #D97706; border-bottom-color: #D97706; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .prest-group { margin-bottom: 14px; }
+  .prest-group-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px; padding: 6px 10px; background: var(--grey); border-radius: 6px; }
+
 </style>
 </head>
 <body>
@@ -176,31 +187,122 @@
   <div class="card">
     <div class="card-header">🧹 Prestations</div>
     <div class="card-body">
-      <div class="prest-list" id="prest-list">
-        <div class="prest-item" onclick="togglePrest(this)" data-id="remise">
-          <div class="prest-checkbox">✓</div>
-          <div class="prest-label">Remise en état complet<small>Sols, vitres, cuisine, SdB, portes, interrupteurs, radiateurs</small></div>
-        </div>
-        <div class="lessivage-sub" id="lessivage-sub" onclick="toggleLessivage(this)">
-          <div class="prest-checkbox" id="lessivage-check">✓</div>
-          <span style="font-size:14px;font-weight:500;">Inclure le lessivage des murs</span>
-        </div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="sols"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des sols</div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="vitres"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des vitres et baies vitrées</div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="balcons"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des balcons et terrasses</div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="cuisine"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage de la cuisine</div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="sanitaires"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des sanitaires (WC et salle de bain)</div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="parties-communes"><div class="prest-checkbox">✓</div><div class="prest-label">Parties communes / immeuble / copropriété</div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="etat-lieux"><div class="prest-checkbox">✓</div><div class="prest-label">État des lieux<small>Entrée ou sortie</small></div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="chantier"><div class="prest-checkbox">✓</div><div class="prest-label">Fin de chantier</div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="sinistre"><div class="prest-checkbox">✓</div><div class="prest-label">Après sinistre<small>Incendie / dégât des eaux</small></div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="moquette"><div class="prest-checkbox">✓</div><div class="prest-label">Shampouinage de la moquette</div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="debarras"><div class="prest-checkbox">✓</div><div class="prest-label">Débarras des encombrants</div></div>
-        <div class="prest-item" onclick="togglePrest(this)" data-id="lessivage"><div class="prest-checkbox">✓</div><div class="prest-label">Lessivage des murs</div></div>
+
+      <!-- ONGLETS -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('part', this)">🏠 Particuliers</button>
+        <button class="tab-btn pro" onclick="switchTab('pro', this)">🏢 Professionnels</button>
       </div>
+
+      <!-- ONGLET PARTICULIERS -->
+      <div class="tab-panel active" id="tab-part">
+        <div class="prest-group">
+          <div class="prest-group-title">🏠 Grand nettoyage</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="remise">
+              <div class="prest-checkbox">✓</div>
+              <div class="prest-label">Remise en état complet<small>Sols, vitres, cuisine, SdB, portes, interrupteurs, radiateurs</small></div>
+            </div>
+            <div class="lessivage-sub" id="lessivage-sub" onclick="toggleLessivage(this)">
+              <div class="prest-checkbox" id="lessivage-check">✓</div>
+              <span style="font-size:14px;font-weight:500;">Inclure le lessivage des murs</span>
+            </div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="maison"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage maison<small>Avant / après déménagement</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="appartement"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage appartement / studio</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="vitres"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des vitres et baies vitrées</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="balcons"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des balcons et terrasses</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="sols"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des sols</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="cuisine"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage de la cuisine</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="sanitaires"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des sanitaires (WC et salle de bain)</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="moquette"><div class="prest-checkbox">✓</div><div class="prest-label">Shampouinage de la moquette</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="lessivage"><div class="prest-checkbox">✓</div><div class="prest-label">Lessivage des murs et plafonds</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="debarras"><div class="prest-checkbox">✓</div><div class="prest-label">Débarras des encombrants</div></div>
+          </div>
+        </div>
+        <div class="prest-group">
+          <div class="prest-group-title">🏢 Nettoyage immobilier</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="immeuble"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage d'immeuble</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="copropriete"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage copropriété<small>Parties communes, hall, escaliers</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="parking"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage parking</div></div>
+          </div>
+        </div>
+        <div class="prest-group">
+          <div class="prest-group-title">⚡ Situations spécifiques</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="etat-lieux"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage pour état des lieux<small>Entrée ou sortie</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="chantier"><div class="prest-checkbox">✓</div><div class="prest-label">Fin de chantier</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="demenagement"><div class="prest-checkbox">✓</div><div class="prest-label">Après déménagement</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="incendie"><div class="prest-checkbox">✓</div><div class="prest-label">Après incendie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="degat-eaux"><div class="prest-checkbox">✓</div><div class="prest-label">Après dégât des eaux</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="deces"><div class="prest-checkbox">✓</div><div class="prest-label">Après décès</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="insalubre"><div class="prest-checkbox">✓</div><div class="prest-label">Logement insalubre</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="diogene"><div class="prest-checkbox">✓</div><div class="prest-label">Syndrome de Diogène</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="depressif"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage état dépressif</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="fientes"><div class="prest-checkbox">✓</div><div class="prest-label">Salissures animalières / fientes de pigeons</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="fosse"><div class="prest-checkbox">✓</div><div class="prest-label">Fosse septique / canalisation</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ONGLET PROFESSIONNELS -->
+      <div class="tab-panel" id="tab-pro">
+
+        <div class="prest-group">
+          <div class="prest-group-title">🏢 Bureaux & Locaux</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-bureaux"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des bureaux / open space</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sols"><div class="prest-checkbox">✓</div><div class="prest-label">Entretien des sols<small>Aspiration, lavage, décapage, cristallisation</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-vitres"><div class="prest-checkbox">✓</div><div class="prest-label">Vitrerie extérieure</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sanitaires"><div class="prest-checkbox">✓</div><div class="prest-label">Sanitaires / vestiaires</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-reunion"><div class="prest-checkbox">✓</div><div class="prest-label">Salle de réunion / salle de conférence</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-parties"><div class="prest-checkbox">✓</div><div class="prest-label">Parties communes / hall d'entrée</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-chantier"><div class="prest-checkbox">✓</div><div class="prest-label">Fin de chantier / remise en état</div></div>
+          </div>
+        </div>
+
+        <div class="prest-group">
+          <div class="prest-group-title">🍽️ Restauration & Métiers de bouche</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-cuisine-pro"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage cuisine professionnelle<small>Hottes, équipements, plans de travail, carrelages</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-restaurant"><div class="prest-checkbox">✓</div><div class="prest-label">Restaurant / brasserie<small>Salle, cuisine, sanitaires, sols</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-boulangerie"><div class="prest-checkbox">✓</div><div class="prest-label">Boulangerie / pâtisserie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-boucherie"><div class="prest-checkbox">✓</div><div class="prest-label">Boucherie / charcuterie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-labo"><div class="prest-checkbox">✓</div><div class="prest-label">Laboratoire alimentaire / agroalimentaire</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-traiteur"><div class="prest-checkbox">✓</div><div class="prest-label">Traiteur / cuisine centrale</div></div>
+          </div>
+        </div>
+
+        <div class="prest-group">
+          <div class="prest-group-title">🏥 Cabinets médicaux & Santé</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-med-gen"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet médecin généraliste</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-dentiste"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet dentaire</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-kine"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet kinésithérapeute / ostéopathe</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-infirmier"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet infirmier / paramédical</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-specialiste"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet spécialiste<small>Cardiologue, dermatologue, ophtalmologue...</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-ehpad"><div class="prest-checkbox">✓</div><div class="prest-label">EHPAD / maison de retraite</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-creche"><div class="prest-checkbox">✓</div><div class="prest-label">Crèche / halte-garderie</div></div>
+          </div>
+        </div>
+
+        <div class="prest-group">
+          <div class="prest-group-title">🏪 Commerces & Autres</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-magasin"><div class="prest-checkbox">✓</div><div class="prest-label">Magasin / commerce de détail</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-coiffure"><div class="prest-checkbox">✓</div><div class="prest-label">Salon de coiffure / esthétique</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sport"><div class="prest-checkbox">✓</div><div class="prest-label">Salle de sport / fitness</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-evenement"><div class="prest-checkbox">✓</div><div class="prest-label">Salle des fêtes / événementiel<small>Avant ou après événement</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-entrepot"><div class="prest-checkbox">✓</div><div class="prest-label">Entrepôt / local industriel</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sinistre"><div class="prest-checkbox">✓</div><div class="prest-label">Après sinistre<small>Incendie / dégât des eaux</small></div></div>
+          </div>
+        </div>
+
+      </div>
+
       <div class="field" style="margin-top:14px;">
-        <label>Prestations supplémentaires</label>
-        <textarea id="prest-supp" placeholder="Préciser ici toute prestation hors liste..."></textarea>
+        <label>Prestations supplémentaires / précisions</label>
+        <textarea id="prest-supp" placeholder="Préciser ici toute prestation hors liste, fréquence, contraintes particulières..."></textarea>
       </div>
     </div>
   </div>
@@ -220,7 +322,6 @@
         <button class="reg-btn" onclick="selectReg(this)" data-val="CB (SumUp)">💳 CB – SumUp</button>
         <button class="reg-btn" onclick="selectReg(this)" data-val="Chèque">📝 Chèque</button>
         <button class="reg-btn" onclick="selectReg(this)" data-val="Espèces">💵 Espèces</button>
-        <button class="reg-btn" onclick="selectReg(this)" data-val="Lydia/PayByLink">📲 Lydia / Pay by Link</button>
         <button class="reg-btn" onclick="selectReg(this)" data-val="Autre">Autre</button>
       </div>
 
@@ -670,6 +771,74 @@ function resetForm() {
 }
 
 init();
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
 </script>
 </body>
-</html>
+</html>        <!-- ONGLET PROFESSIONNELS -->
+      <div class="tab-panel" id="tab-pro">
+
+        <div class="prest-group">
+          <div class="prest-group-title">🏢 Bureaux & Locaux</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-bureaux"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des bureaux / open space</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-locaux"><div class="prest-checkbox">✓</div><div class="prest-label">Locaux d'entreprise</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sols"><div class="prest-checkbox">✓</div><div class="prest-label">Entretien des sols<small>Aspiration, lavage, décapage, cristallisation</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-vitres"><div class="prest-checkbox">✓</div><div class="prest-label">Vitrerie extérieure</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-moquette"><div class="prest-checkbox">✓</div><div class="prest-label">Shampouinage moquette professionnelle</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sanitaires"><div class="prest-checkbox">✓</div><div class="prest-label">Sanitaires / vestiaires</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-reunion"><div class="prest-checkbox">✓</div><div class="prest-label">Salle de réunion / conférence</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-parties"><div class="prest-checkbox">✓</div><div class="prest-label">Parties communes / hall d'entrée</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-entrepot"><div class="prest-checkbox">✓</div><div class="prest-label">Entrepôt / local industriel</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-debarras"><div class="prest-checkbox">✓</div><div class="prest-label">Débarras encombrants</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-chantier"><div class="prest-checkbox">✓</div><div class="prest-label">Fin de chantier / remise en état</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-parking"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage parking</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-industriel"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage industriel</div></div>
+          </div>
+        </div>
+
+        <div class="prest-group">
+          <div class="prest-group-title">🍽️ Restauration & Métiers de bouche</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-cuisine-pro"><div class="prest-checkbox">✓</div><div class="prest-label">Cuisine professionnelle<small>Hottes, équipements, plans de travail, carrelages</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-restaurant"><div class="prest-checkbox">✓</div><div class="prest-label">Restaurant / brasserie / café</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-boulangerie"><div class="prest-checkbox">✓</div><div class="prest-label">Boulangerie / pâtisserie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-boucherie"><div class="prest-checkbox">✓</div><div class="prest-label">Boucherie / charcuterie / poissonnerie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-labo"><div class="prest-checkbox">✓</div><div class="prest-label">Laboratoire alimentaire / agroalimentaire</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-traiteur"><div class="prest-checkbox">✓</div><div class="prest-label">Traiteur / cuisine centrale</div></div>
+          </div>
+        </div>
+
+        <div class="prest-group">
+          <div class="prest-group-title">🏥 Santé (protocole désinfection)</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-med-gen"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet médecin généraliste</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-dentiste"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet dentaire</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-kine"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet kinésithérapeute / ostéopathe</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-infirmier"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet infirmier / paramédical</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-specialiste"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet spécialiste<small>Cardiologue, dermatologue, ophtalmologue, etc.</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-ehpad"><div class="prest-checkbox">✓</div><div class="prest-label">EHPAD / maison de retraite</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-creche"><div class="prest-checkbox">✓</div><div class="prest-label">Crèche / halte-garderie</div></div>
+          </div>
+        </div>
+
+        <div class="prest-group">
+          <div class="prest-group-title">🏪 Commerces & Grands espaces</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-magasin"><div class="prest-checkbox">✓</div><div class="prest-label">Magasin / commerce de détail</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-coiffure"><div class="prest-checkbox">✓</div><div class="prest-label">Salon de coiffure / esthétique</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sport"><div class="prest-checkbox">✓</div><div class="prest-label">Salle de sport / fitness</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-danse"><div class="prest-checkbox">✓</div><div class="prest-label">Salle de danse</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-evenement"><div class="prest-checkbox">✓</div><div class="prest-label">Salle des fêtes / événementiel<small>Avant ou après événement</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-ecole"><div class="prest-checkbox">✓</div><div class="prest-label">École / centre de formation</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-fientes"><div class="prest-checkbox">✓</div><div class="prest-label">Salissures animalières / fientes de pigeons</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sinistre"><div class="prest-checkbox">✓</div><div class="prest-label">Après sinistre<small>Incendie / dégât des eaux</small></div></div>
+          </div>
+        </div>
+
+      </div>

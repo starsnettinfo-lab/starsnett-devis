@@ -172,7 +172,14 @@
     <div class="card-header">👤 Informations client</div>
     <div class="card-body">
       <div class="form-grid">
-        <div class="field"><label>Nom / Société *</label><input type="text" id="client-nom" placeholder="Ex: M. Dupont / Société XYZ" oninput="updateProgress()"></div>
+        <div class="form-grid form-grid-2">
+          <div class="field"><label>Prénom *</label><input type="text" id="client-prenom" placeholder="Ex: Jean" oninput="updateProgress()"></div>
+          <div class="field"><label>Nom *</label><input type="text" id="client-nom" placeholder="Ex: Dupont" oninput="updateProgress()"></div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="field"><label>Nom de la société</label><input type="text" id="client-societe" placeholder="Ex: SARL XYZ (si professionnel)"></div>
+          <div class="field"><label>Nom de l'interlocuteur</label><input type="text" id="client-interlocuteur" placeholder="Ex: M. Martin (si différent)"></div>
+        </div>
         <div class="form-grid form-grid-2">
           <div class="field"><label>Téléphone * (pour SMS/WA)</label><input type="tel" id="client-tel" placeholder="06 xx xx xx xx" oninput="updateProgress()"></div>
           <div class="field"><label>Email (pour lien signature)</label><input type="email" id="client-email" placeholder="client@email.com" oninput="updateProgress()"></div>
@@ -548,7 +555,7 @@ function updateProgress() {
   let score = 0;
   if (state.client) score++;
   if (state.mission) score++;
-  if (document.getElementById('client-nom').value.trim()) score++;
+  if (document.getElementById('client-nom').value.trim() && document.getElementById('client-prenom').value.trim()) score++;
   if (document.getElementById('client-rue').value.trim()) score++;
   if (document.getElementById('montant-ht').value) score++;
   document.getElementById('progress').style.width = (score/5*100) + '%';
@@ -577,7 +584,10 @@ function collectData() {
     num: currentDevisId,
     date: document.getElementById('date-display').textContent,
     client: state.client, mission: state.mission, commercial: state.commercial,
+    prenom: document.getElementById('client-prenom').value.trim(),
     nom: document.getElementById('client-nom').value.trim(),
+    societe: document.getElementById('client-societe').value.trim(),
+    interlocuteur: document.getElementById('client-interlocuteur').value.trim(),
     tel: document.getElementById('client-tel').value.trim(),
     email: document.getElementById('client-email').value.trim(),
     adresse: [
@@ -667,7 +677,7 @@ async function sendSigLink(channel) {
   if (channel === 'whatsapp') {
     const tel = d.tel.replace(/\s/g,'');
     const msg = encodeURIComponent(
-`Bonjour ${d.nom},
+`Bonjour ${d.prenom} ${d.nom},
 
 Votre devis Starsnett Services *${d.num}* est prêt.
 
@@ -685,7 +695,7 @@ ${d.commercial || 'Starsnett Services'}
   } else {
     const subject = encodeURIComponent(`Votre devis Starsnett N°${d.num} – À signer`);
     const body = encodeURIComponent(
-`Bonjour ${d.nom},
+`Bonjour ${d.prenom} ${d.nom},
 
 Votre devis Starsnett Services N°${d.num} est prêt.
 
@@ -1013,7 +1023,7 @@ function sendEmail() {
 
 CLIENT
 Type         : ${d.client || '—'} / ${d.mission || '—'}
-Nom / Société: ${d.nom}
+Nom / Prénom : ${d.prenom} ${d.nom}${d.societe ? '\nSociété      : ' + d.societe : ''}${d.interlocuteur ? '\nInterlocuteur: ' + d.interlocuteur : ''}
 Adresse site : ${d.adresse}${d.logement ? ' (' + d.logement + ')' : ''}${d.nomSonnette ? '\nSonnette    : ' + d.nomSonnette : ''}${d.digicode ? '\nDigicode    : ' + d.digicode : ''}${d.acces ? '\nAccès       : ' + d.acces : ''}
 Téléphone    : ${d.tel}
 Email        : ${d.email || '—'}
@@ -1051,7 +1061,7 @@ function sendCopyToClient() {
   const subject = encodeURIComponent(`Votre devis Starsnett Services N°${d.num}`);
   const rib = d.reglement === 'Virement' ? `\n\nCoordonnées bancaires pour règlement par virement :\nIBAN : FR76 3000 4029 5400 0100 5863 495\nBIC : BNPAFRPPXXX\nTitulaire : SARL Starsnett Services\nRéférence à indiquer : ${d.num}` : '';
   const body = encodeURIComponent(
-`Bonjour ${d.nom},
+`Bonjour ${d.prenom} ${d.nom},
 
 Veuillez trouver ci-dessous le récapitulatif de votre devis.
 
@@ -1096,7 +1106,7 @@ function sendWhatsApp() {
 
 *CLIENT*
 ${d.client || '—'} / ${d.mission || '—'}
-📛 ${d.nom}
+📛 ${d.prenom} ${d.nom}${d.societe ? ' – ' + d.societe : ''}${d.interlocuteur ? ' (Contact: ' + d.interlocuteur + ')' : ''}
 📍 ${d.adresse}
 📞 ${d.tel}
 ${d.reco ? '🔗 Via : ' + d.reco : ''}

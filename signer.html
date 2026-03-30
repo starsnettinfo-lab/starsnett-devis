@@ -77,6 +77,7 @@
   .error-title { font-size: 20px; font-weight: 700; color: #DC2626; margin-bottom: 10px; }
   .error-sub { font-size: 14px; color: var(--muted); }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -95,9 +96,9 @@
 
 <!-- SUCCESS STATE -->
 <div class="success-screen" id="success-screen">
-  <div class="success-icon">✅</div>
-  <div class="success-title">Devis signé !</div>
-  <div class="success-sub">Votre signature a bien été enregistrée.<br>Starsnett Services va vous recontacter prochainement.</div>
+  <div class="success-icon" id="success-icon">✅</div>
+  <div class="success-title" id="success-title">Devis signé !</div>
+  <div class="success-sub" id="success-sub">Votre signature a bien été enregistrée.<br>Starsnett Services va vous recontacter prochainement.</div>
   <div class="success-num" id="success-num"></div>
 </div>
 
@@ -145,6 +146,9 @@
         <div class="sig-status" id="sig-status">○ Zone de signature vide</div>
         <button class="sig-clear" onclick="clearSig()">✕ Effacer</button>
       </div>
+      <button class="confirm-btn" style="background:var(--grey);color:var(--muted);border:1.5px solid var(--border);margin-bottom:10px;" onclick="signerPlusTard()">
+        ⏳ Je signerai plus tard
+      </button>
       <button class="confirm-btn" id="confirm-btn" onclick="confirmSignature()" disabled>
         ✅ Valider et signer le devis
       </button>
@@ -256,56 +260,213 @@ function clearSig() {
   document.getElementById('confirm-btn').disabled = true;
 }
 
+// ── SIGNER PLUS TARD ──────────────────────────────────────────────────
+function signerPlusTard() {
+  document.getElementById('main-content').style.display = 'none';
+  const screen = document.getElementById('success-screen');
+  document.getElementById('success-icon').textContent = '⏳';
+  document.getElementById('success-title').textContent = 'Lien conservé';
+  document.getElementById('success-sub').textContent = 'Vous pouvez revenir signer ce devis quand vous le souhaitez via le même lien. Il reste valable 7 jours.';
+  document.getElementById('success-num').textContent = 'Devis N°' + devisData.num + ' – ' + devisData.nom;
+  screen.classList.add('show');
+  window.scrollTo(0,0);
+}
+
+// ── GENERATE PDF WITH SIGNATURE ────────────────────────────────────────
+async function generateSignedPDF(d, sigDataUrl, now) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, margin = 15, contentW = W - margin * 2;
+  let y = 15;
+  const blue = [27, 79, 138];
+  const yellow = [245, 196, 0];
+  const grey = [247, 248, 250];
+  const muted = [107, 122, 153];
+
+  // Header
+  doc.setFillColor(...blue);
+  doc.rect(0, 0, W, 38, 'F');
+  doc.setTextColor(245, 196, 0);
+  doc.setFontSize(20); doc.setFont('helvetica', 'bold');
+  doc.text('Starsnett', margin, 16);
+  doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+  doc.text('Services', margin + 43, 16);
+  doc.setDrawColor(...yellow); doc.setLineWidth(1.2);
+  doc.line(margin, 19, margin + 65, 19);
+  doc.setFontSize(8); doc.setTextColor(200,220,255);
+  doc.text('83, rue de Reuilly – 75012 Paris  |  01 43 77 58 69  |  contact@starsnett-services.com', margin, 26);
+  doc.text('SARL – SIRET : 523 021 665 00022 – NAF : 8122Z', margin, 31);
+  doc.setTextColor(245,196,0); doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+  doc.text('DEVIS N° ' + d.num, W - margin, 16, { align: 'right' });
+  doc.setTextColor(200,220,255); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+  doc.text(d.date, W - margin, 22, { align: 'right' });
+  doc.text((d.client||'') + ' / ' + (d.mission||''), W - margin, 28, { align: 'right' });
+
+  // Signature électronique badge
+  doc.setFillColor(22, 163, 74);
+  doc.roundedRect(margin, 33, 80, 6, 1, 1, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+  doc.text('✅ DEVIS SIGNÉ ÉLECTRONIQUEMENT – ' + now, margin + 2, 37);
+
+  y = 46;
+
+  // CLIENT
+  doc.setFillColor(...blue); doc.rect(margin, y, contentW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+  doc.text('CLIENT', margin + 3, y + 5); y += 10;
+  doc.setFillColor(...grey); doc.rect(margin, y, contentW, 28, 'F');
+  doc.setDrawColor(209,217,230); doc.rect(margin, y, contentW, 28, 'S');
+  doc.setTextColor(0,0,0);
+  const rows = [['Nom / Société :', d.nom||'—'], ['Adresse :', d.adresse||'—'], ['Téléphone :', d.tel||'—'], ['Email :', d.email||'—']];
+  rows.forEach((r, i) => {
+    doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text(r[0], margin+3, y+6+(i*6));
+    doc.setFont('helvetica','normal');
+    doc.text(r[1], margin+35, y+6+(i*6));
+  });
+  y += 33;
+
+  // PRESTATIONS
+  doc.setFillColor(...blue); doc.rect(margin, y, contentW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('PRESTATIONS', margin+3, y+5); y += 10;
+  d.prestations.forEach((p, i) => {
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFillColor(i%2===0?247:255, i%2===0?248:255, i%2===0?250:255);
+    doc.rect(margin, y, contentW, 7, 'F');
+    doc.setDrawColor(209,217,230); doc.rect(margin, y, contentW, 7, 'S');
+    doc.setFillColor(...blue); doc.rect(margin+2, y+1.5, 4, 4, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.text('v', margin+2.8, y+5);
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    doc.text(p, margin+9, y+5); y += 7;
+  });
+  y += 5;
+
+  // TARIFICATION
+  if (y > 220) { doc.addPage(); y = 20; }
+  doc.setFillColor(...blue); doc.rect(margin, y, contentW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('TARIFICATION', margin+3, y+5); y += 10;
+  const col1 = contentW * 0.6;
+  const col2 = contentW * 0.4;
+  [['Montant HT', (d.ht||'—')+' €', grey], ['TVA (20%)', (d.tva||'—')+' €', [255,255,255]]].forEach(r => {
+    doc.setFillColor(...r[2]); doc.rect(margin, y, col1, 8, 'F'); doc.rect(margin+col1, y, col2, 8, 'F');
+    doc.setDrawColor(209,217,230); doc.rect(margin, y, col1, 8, 'S'); doc.rect(margin+col1, y, col2, 8, 'S');
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text(r[0], margin+3, y+5.5);
+    doc.setFont('helvetica','normal'); doc.text(r[1], margin+col1+3, y+5.5);
+    y += 8;
+  });
+  doc.setFillColor(...blue); doc.rect(margin, y, contentW, 10, 'F');
+  doc.setTextColor(245,196,0); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text('TOTAL TTC', margin+3, y+7);
+  doc.text((d.ttc||'—')+' €', W-margin-3, y+7, { align: 'right' }); y += 14;
+
+  if (d.reglement === 'Virement') {
+    doc.setFillColor(235,242,252); doc.rect(margin, y, contentW, 20, 'F');
+    doc.setDrawColor(...blue); doc.setLineWidth(0.5); doc.rect(margin, y, contentW, 20, 'S');
+    doc.setTextColor(...blue); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+    doc.text('Coordonnees bancaires – BNP Paribas', margin+3, y+5);
+    doc.setFont('helvetica','normal'); doc.setTextColor(0,0,0);
+    doc.text('Titulaire : SARL Starsnett Services', margin+3, y+10);
+    doc.text('IBAN : FR76 3000 4029 5400 0100 5863 495', margin+3, y+15);
+    doc.text('BIC : BNPAFRPPXXX', margin+100, y+15); y += 24;
+  }
+  y += 5;
+
+  // Mentions
+  if (y > 240) { doc.addPage(); y = 20; }
+  doc.setTextColor(...muted); doc.setFont('helvetica','italic'); doc.setFontSize(7.5);
+  doc.text("Starsnett services intervient en l'etat. Nous nous dechargeons de toute responsabilite pour dommages non imputables.", margin, y, { maxWidth: contentW }); y += 6;
+  doc.setFont('helvetica','bold'); doc.setTextColor(...blue); doc.setFontSize(9);
+  doc.text('Devis ferme, a caractere forfaitaire.', W/2, y, { align: 'center' }); y += 10;
+
+  // SIGNATURE ZONE
+  if (y > 220) { doc.addPage(); y = 20; }
+  const halfW = (contentW - 5) / 2;
+  doc.setFillColor(...grey); doc.setDrawColor(...blue);
+  doc.rect(margin, y, halfW, 7, 'F'); doc.rect(margin, y, halfW, 7, 'S');
+  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('Bon pour accord le : ' + now.split(' ')[0], margin+3, y+5);
+  doc.setFillColor(...grey);
+  doc.rect(margin+halfW+5, y, halfW, 7, 'F'); doc.rect(margin+halfW+5, y, halfW, 7, 'S');
+  doc.text('Signature electronique du client :', margin+halfW+8, y+5); y += 7;
+
+  // Left box: empty (Starsnett)
+  doc.setDrawColor(...blue); doc.rect(margin, y, halfW, 35, 'S');
+  doc.setTextColor(...muted); doc.setFontSize(8); doc.setFont('helvetica','italic');
+  doc.text('Tampon Starsnett Services', margin+3, y+18);
+
+  // Right box: CLIENT SIGNATURE IMAGE
+  doc.setDrawColor(22,163,74); doc.setLineWidth(1);
+  doc.rect(margin+halfW+5, y, halfW, 35, 'S');
+  doc.setLineWidth(0.5);
+  // Add signature image
+  try {
+    doc.addImage(sigDataUrl, 'PNG', margin+halfW+7, y+2, halfW-4, 30);
+  } catch(e) {}
+  // Green validated badge under signature
+  doc.setFillColor(22,163,74);
+  doc.rect(margin+halfW+5, y+30, halfW, 5, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+  doc.text('✅ Signature validee le ' + now, margin+halfW+7, y+34);
+  y += 40;
+
+  // 50%
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...blue);
+  doc.text('50% a la Signature – Solde juste apres la prestation', W/2, y, { align: 'center' }); y += 8;
+
+  // Footer
+  doc.setFillColor(...blue); doc.rect(0, 287, W, 10, 'F');
+  doc.setTextColor(200,220,255); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+  doc.text('Tel : 01 43 77 58 69  –  contact@starsnett-services.com  –  83, Rue de Reuilly, 75012 Paris  –  RCS Paris : 523 021 665', W/2, 293, { align: 'center' });
+
+  return doc;
+}
+
 // ── CONFIRM & NOTIFY ───────────────────────────────────────────────────
-function confirmSignature() {
+async function confirmSignature() {
   if (!sigHasSig) return;
   const btn = document.getElementById('confirm-btn');
   btn.disabled = true;
-  btn.textContent = '⏳ Envoi en cours…';
+  btn.textContent = '⏳ Génération du PDF signé…';
 
   const canvas = document.getElementById('sig-canvas');
   const sigDataUrl = canvas.toDataURL('image/png');
   const d = devisData;
   const now = new Date().toLocaleString('fr-FR');
 
-  // Send notification email to Starsnett
-  const subject = encodeURIComponent(`✅ Devis ${d.num} SIGNÉ – ${d.nom}`);
+  // Generate PDF
+  let doc;
+  try {
+    doc = await generateSignedPDF(d, sigDataUrl, now);
+    const filename = 'Devis_Signe_' + d.num + '_' + (d.nom||'client').replace(/[^a-zA-Z0-9]/g,'_') + '.pdf';
+    doc.save(filename);
+    btn.textContent = '📧 Envoi de la notification…';
+  } catch(e) {
+    console.error('PDF error:', e);
+  }
+
+  // Email to Starsnett
+  const subject = encodeURIComponent('✅ Devis ' + d.num + ' SIGNÉ – ' + d.nom);
   const body = encodeURIComponent(
-`DEVIS SIGNÉ ÉLECTRONIQUEMENT
-════════════════════════════════
-Devis N°     : ${d.num}
-Signé le     : ${now}
-Client       : ${d.nom}
-Téléphone    : ${d.tel}
-Email        : ${d.email || '—'}
-Adresse      : ${d.adresse}
-Type         : ${d.client} / ${d.mission}
-Commercial   : ${d.commercial || '—'}
-
-PRESTATIONS
-${d.prestations.map(p => '✓ ' + p).join('\n')}
-
-MONTANT TTC  : ${d.ttc} €
-Règlement    : ${d.reglement || '—'}
-Acompte 50%  : ${d.ttc !== '—' ? (parseFloat(d.ttc)/2).toFixed(2) + ' €' : '—'}
-
-Intervention : ${d.dateInterv || '—'}
-
-Devis ferme, à caractère forfaitaire.
-✅ Signature électronique validée par le client.
-`
+'Devis N° : ' + d.num + '\n' +
+'Signé le : ' + now + '\n' +
+'Client   : ' + d.nom + '\n' +
+'Tél      : ' + d.tel + '\n' +
+'Adresse  : ' + d.adresse + '\n' +
+'TTC      : ' + d.ttc + ' €\n\n' +
+'Le PDF signé a été téléchargé sur le téléphone du client.\n' +
+'✅ Signature électronique validée.'
   );
+  window.location.href = 'mailto:starsnettinfo@gmail.com?subject=' + subject + '&body=' + body;
 
-  // Open email to notify admin
-  window.location.href = `mailto:starsnettinfo@gmail.com?subject=${subject}&body=${body}`;
-
-  // Show success screen
   setTimeout(() => {
     document.getElementById('main-content').style.display = 'none';
-    document.getElementById('success-num').textContent = `Devis N°${d.num} – ${d.nom} – ${now}`;
+    document.getElementById('success-num').textContent = 'Devis N°' + d.num + ' – ' + d.nom + ' – ' + now;
     document.getElementById('success-screen').classList.add('show');
     window.scrollTo(0,0);
-  }, 1200);
+  }, 1500);
 }
 
 loadDevis();

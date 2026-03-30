@@ -131,6 +131,7 @@
   .prest-group-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px; padding: 6px 10px; background: var(--grey); border-radius: 6px; }
 
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -426,6 +427,7 @@
 
 <!-- SEND BAR -->
 <div class="send-section" style="flex-wrap:wrap;gap:8px;">
+  <button class="btn" style="background:#6D28D9;color:white;flex:1;min-width:140px;" onclick="generatePDF()">📄 Générer PDF</button>
   <button class="btn btn-email" onclick="sendEmail()" style="flex:1;min-width:140px;">✉️ Envoyer à Starsnett</button>
   <button class="btn" style="background:#0EA5E9;color:white;flex:1;min-width:140px;" onclick="sendCopyToClient()">📨 Copie au client</button>
   <button class="btn btn-whatsapp" style="flex:1;min-width:140px;" onclick="sendWhatsApp()">
@@ -668,6 +670,295 @@ contact@starsnett-services.com`
 function copyLink() {
   const url = document.getElementById('sig-link-url').textContent;
   navigator.clipboard.writeText(url).then(() => showToast('📋 Lien copié !'));
+}
+
+// ── GÉNÉRATION PDF ────────────────────────────────────────────────────
+async function generatePDF() {
+  const d = collectData();
+  if (!validate(d)) return;
+  showToast('⏳ Génération du PDF...');
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, margin = 15, contentW = W - margin * 2;
+  let y = 15;
+
+  // ── Couleurs
+  const blue = [27, 79, 138];
+  const yellow = [245, 196, 0];
+  const grey = [247, 248, 250];
+  const muted = [107, 122, 153];
+
+  // ── Header fond bleu
+  doc.setFillColor(...blue);
+  doc.rect(0, 0, W, 38, 'F');
+
+  // Logo texte
+  doc.setTextColor(245, 196, 0);
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Starsnett', margin, 16);
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Services', margin + 43, 16);
+
+  // Ligne jaune sous logo
+  doc.setDrawColor(...yellow);
+  doc.setLineWidth(1.2);
+  doc.line(margin, 19, margin + 65, 19);
+
+  // Coordonnées
+  doc.setFontSize(8);
+  doc.setTextColor(200, 220, 255);
+  doc.text('83, rue de Reuilly – 75012 Paris  |  01 43 77 58 69  |  contact@starsnett-services.com', margin, 26);
+  doc.text('SARL – SIRET : 523 021 665 00022 – NAF : 8122Z', margin, 31);
+
+  // Numéro devis
+  doc.setTextColor(245, 196, 0);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DEVIS N° ' + d.num, W - margin, 16, { align: 'right' });
+  doc.setTextColor(200, 220, 255);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(d.date, W - margin, 22, { align: 'right' });
+  doc.text((d.client || '') + ' / ' + (d.mission || ''), W - margin, 28, { align: 'right' });
+
+  y = 46;
+
+  // ── Section CLIENT
+  doc.setFillColor(...blue);
+  doc.rect(margin, y, contentW, 7, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CLIENT', margin + 3, y + 5);
+  y += 10;
+
+  doc.setFillColor(...grey);
+  doc.rect(margin, y, contentW, 28, 'F');
+  doc.setDrawColor(209, 217, 230);
+  doc.rect(margin, y, contentW, 28, 'S');
+
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('Nom / Société :', margin + 3, y + 6);
+  doc.setFont('helvetica', 'normal');
+  doc.text(d.nom || '—', margin + 35, y + 6);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('Adresse :', margin + 3, y + 12);
+  doc.setFont('helvetica', 'normal');
+  doc.text(d.adresse || '—', margin + 35, y + 12);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('Téléphone :', margin + 3, y + 18);
+  doc.setFont('helvetica', 'normal');
+  doc.text(d.tel || '—', margin + 35, y + 18);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('Email :', margin + 3, y + 24);
+  doc.setFont('helvetica', 'normal');
+  doc.text(d.email || '—', margin + 35, y + 24);
+
+  if (d.digicode || d.nomSonnette) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('Accès :', margin + 95, y + 6);
+    doc.setFont('helvetica', 'normal');
+    if (d.nomSonnette) doc.text('Sonnette : ' + d.nomSonnette, margin + 115, y + 6);
+    if (d.digicode) doc.text('Digicode : ' + d.digicode, margin + 115, y + 12);
+  }
+
+  y += 33;
+
+  // ── Section PRESTATIONS
+  doc.setFillColor(...blue);
+  doc.rect(margin, y, contentW, 7, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('PRESTATIONS', margin + 3, y + 5);
+  y += 10;
+
+  if (d.prestations.length === 0) {
+    doc.setTextColor(...muted);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.text('Aucune prestation sélectionnée', margin + 3, y + 5);
+    y += 10;
+  } else {
+    d.prestations.forEach((p, i) => {
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFillColor(i % 2 === 0 ? 247 : 255, i % 2 === 0 ? 248 : 255, i % 2 === 0 ? 250 : 255);
+      doc.rect(margin, y, contentW, 7, 'F');
+      doc.setDrawColor(209, 217, 230);
+      doc.rect(margin, y, contentW, 7, 'S');
+      // Checkbox
+      doc.setFillColor(...blue);
+      doc.rect(margin + 2, y + 1.5, 4, 4, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(7);
+      doc.text('✓', margin + 2.8, y + 5);
+      // Label
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text(p, margin + 9, y + 5);
+      y += 7;
+    });
+  }
+
+  y += 5;
+
+  // ── Section TARIFICATION
+  if (y > 220) { doc.addPage(); y = 20; }
+
+  doc.setFillColor(...blue);
+  doc.rect(margin, y, contentW, 7, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('TARIFICATION', margin + 3, y + 5);
+  y += 10;
+
+  const col1 = contentW * 0.6;
+  const col2 = contentW * 0.4;
+
+  // HT
+  doc.setFillColor(...grey);
+  doc.rect(margin, y, col1, 8, 'F');
+  doc.rect(margin + col1, y, col2, 8, 'F');
+  doc.setDrawColor(209, 217, 230);
+  doc.rect(margin, y, col1, 8, 'S');
+  doc.rect(margin + col1, y, col2, 8, 'S');
+  doc.setTextColor(0,0,0); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('Montant HT', margin + 3, y + 5.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text((d.ht || '—') + ' €', margin + col1 + 3, y + 5.5);
+  y += 8;
+
+  // TVA
+  doc.setFillColor(255,255,255);
+  doc.rect(margin, y, col1, 8, 'F');
+  doc.rect(margin + col1, y, col2, 8, 'F');
+  doc.rect(margin, y, col1, 8, 'S');
+  doc.rect(margin + col1, y, col2, 8, 'S');
+  doc.setFont('helvetica', 'bold');
+  doc.text('TVA (20%)', margin + 3, y + 5.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text((d.tva || '—') + ' €', margin + col1 + 3, y + 5.5);
+  y += 8;
+
+  // TTC
+  doc.setFillColor(...blue);
+  doc.rect(margin, y, contentW, 10, 'F');
+  doc.setTextColor(245, 196, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('TOTAL TTC', margin + 3, y + 7);
+  doc.text((d.ttc || '—') + ' €', W - margin - 3, y + 7, { align: 'right' });
+  y += 14;
+
+  // Règlement
+  doc.setTextColor(0,0,0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('Mode de règlement : ', margin, y);
+  doc.setFont('helvetica', 'normal');
+  doc.text(d.reglement || '—', margin + 42, y);
+  y += 6;
+
+  // RIB si virement
+  if (d.reglement === 'Virement') {
+    doc.setFillColor(235, 242, 252);
+    doc.rect(margin, y, contentW, 20, 'F');
+    doc.setDrawColor(...blue);
+    doc.setLineWidth(0.5);
+    doc.rect(margin, y, contentW, 20, 'S');
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text('Coordonnées bancaires – BNP Paribas', margin + 3, y + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0,0,0);
+    doc.text('Titulaire : SARL Starsnett Services', margin + 3, y + 10);
+    doc.text('IBAN : FR76 3000 4029 5400 0100 5863 495', margin + 3, y + 15);
+    doc.text('BIC : BNPAFRPPXXX', margin + 100, y + 15);
+    y += 24;
+  }
+
+  y += 5;
+
+  // ── Date intervention
+  if (d.dateInterv) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('Date d'intervention : ', margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(d.dateInterv, margin + 42, y);
+    y += 8;
+  }
+
+  // ── Mentions légales
+  if (y > 240) { doc.addPage(); y = 20; }
+  doc.setTextColor(...muted);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7.5);
+  doc.text('Starsnett services intervient en l'état. Nous nous déchargeons de toute responsabilité en cas de dommage n'étant pas de notre fait.', margin, y, { maxWidth: contentW });
+  y += 6;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...blue);
+  doc.setFontSize(9);
+  doc.text('Devis ferme, à caractère forfaitaire.', W / 2, y, { align: 'center' });
+  y += 8;
+
+  // ── Signatures
+  if (y > 230) { doc.addPage(); y = 20; }
+  doc.setTextColor(0,0,0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  const halfW = (contentW - 5) / 2;
+
+  doc.setFillColor(...grey);
+  doc.rect(margin, y, halfW, 7, 'F');
+  doc.setDrawColor(...blue);
+  doc.rect(margin, y, halfW, 7, 'S');
+  doc.text('Bon pour accord le :', margin + 3, y + 5);
+
+  doc.setFillColor(...grey);
+  doc.rect(margin + halfW + 5, y, halfW, 7, 'F');
+  doc.rect(margin + halfW + 5, y, halfW, 7, 'S');
+  doc.text('Tampon et signature du client :', margin + halfW + 8, y + 5);
+  y += 7;
+
+  doc.setDrawColor(...blue);
+  doc.rect(margin, y, halfW, 25, 'S');
+  doc.rect(margin + halfW + 5, y, halfW, 25, 'S');
+  y += 29;
+
+  // 50%
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...blue);
+  doc.text('50% à la Signature – Solde juste après la prestation', W / 2, y, { align: 'center' });
+
+  // ── Footer
+  doc.setFillColor(...blue);
+  doc.rect(0, 287, W, 10, 'F');
+  doc.setTextColor(200, 220, 255);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.text('Tél : 01 43 77 58 69  –  contact@starsnett-services.com  –  83, Rue de Reuilly, 75012 Paris  –  SARL Capital 200 000€  –  RCS Paris : 523 021 665', W/2, 293, { align: 'center' });
+
+  // ── Téléchargement
+  const filename = 'Devis_' + d.num + '_' + (d.nom || 'client').replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
+  doc.save(filename);
+  showToast('✅ PDF téléchargé : ' + filename);
 }
 
 // ── EMAIL DEVIS COMPLET ────────────────────────────────────────────────

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Signature – Starsnett Services</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1B4F8A; --blue-light: #EBF2FC; --yellow: #F5C400;
+    --green: #16A34A; --green-light: #DCFCE7;
+    --grey: #F7F8FA; --border: #D1D9E6;
+    --text: #1A1A2E; --muted: #6B7A99; --white: #FFFFFF;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #EEF3FA; color: var(--text); min-height: 100vh; }
+
+  .header { background: var(--blue); color: white; padding: 18px 20px; text-align: center; }
+  .header .star { font-size: 28px; color: var(--yellow); display: block; margin-bottom: 4px; }
+  .header h1 { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 2px; }
+  .header p { font-size: 13px; opacity: 0.7; }
+
+  .main { max-width: 600px; margin: 0 auto; padding: 20px 16px 40px; }
+
+  .card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 16px rgba(27,79,138,0.08); }
+  .card-header { background: var(--blue); color: white; padding: 12px 18px; font-weight: 600; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+  .card-body { padding: 18px; }
+
+  /* DEVIS RECAP */
+  .devis-num { font-size: 22px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+  .devis-date { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .info-row { display: flex; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+  .info-label { font-weight: 600; color: var(--muted); min-width: 110px; font-size: 13px; }
+  .prest-recap { margin: 14px 0; }
+  .prest-recap-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 8px; background: var(--grey); margin-bottom: 6px; font-size: 14px; }
+  .prest-recap-item::before { content: '✓'; color: var(--blue); font-weight: 700; flex-shrink: 0; }
+
+  .montant-box { background: var(--blue); color: white; border-radius: 10px; padding: 16px; text-align: center; margin-top: 14px; }
+  .montant-label { font-size: 12px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .montant-val { font-size: 32px; font-weight: 700; color: var(--yellow); }
+  .montant-sub { font-size: 12px; opacity: 0.6; margin-top: 4px; }
+
+  /* MENTIONS */
+  .mentions { font-size: 12px; color: var(--muted); line-height: 1.6; padding: 12px 0; border-top: 1px solid var(--border); margin-top: 14px; }
+
+  /* SIGNATURE ZONE */
+  .sig-instruction { font-size: 14px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .sig-wrapper { position: relative; border: 2px dashed var(--border); border-radius: 12px; background: #FAFBFF; touch-action: none; overflow: hidden; }
+  .sig-wrapper.has-sig { border: 2px solid var(--blue); border-style: solid; background: white; }
+  #sig-canvas { display: block; width: 100%; height: 180px; cursor: crosshair; }
+  .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: var(--muted); font-size: 15px; pointer-events: none; text-align: center; transition: opacity 0.2s; }
+  .sig-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .sig-clear { background: none; border: 1.5px solid var(--border); border-radius: 7px; padding: 7px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .sig-clear:hover { border-color: #DC2626; color: #DC2626; }
+  .sig-status { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .sig-status.signed { color: var(--green); font-weight: 600; }
+
+  /* CONFIRM BTN */
+  .confirm-btn { width: 100%; padding: 18px; background: var(--blue); color: white; border: none; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.18s; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .confirm-btn:hover { background: #163F70; }
+  .confirm-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  .confirm-btn:active { transform: scale(0.98); }
+
+  /* SUCCESS */
+  .success-screen { display: none; text-align: center; padding: 40px 20px; }
+  .success-screen.show { display: block; }
+  .success-icon { font-size: 72px; margin-bottom: 16px; }
+  .success-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--green); margin-bottom: 10px; }
+  .success-sub { font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+  .success-num { background: var(--green-light); border: 1px solid var(--green); border-radius: 10px; padding: 14px; font-size: 14px; color: var(--green); font-weight: 600; }
+
+  /* ERROR */
+  .error-screen { display: none; text-align: center; padding: 60px 20px; }
+  .error-screen.show { display: block; }
+  .error-icon { font-size: 60px; margin-bottom: 16px; }
+  .error-title { font-size: 20px; font-weight: 700; color: #DC2626; margin-bottom: 10px; }
+  .error-sub { font-size: 14px; color: var(--muted); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <span class="star">★</span>
+  <h1>Starsnett Services</h1>
+  <p>Signature électronique de devis</p>
+</div>
+
+<!-- ERROR STATE -->
+<div class="error-screen" id="error-screen">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">Lien invalide ou expiré</div>
+  <div class="error-sub">Ce lien de signature n'est pas valide.<br>Contactez votre commercial Starsnett.</div>
+</div>
+
+<!-- SUCCESS STATE -->
+<div class="success-screen" id="success-screen">
+  <div class="success-icon" id="success-icon">✅</div>
+  <div class="success-title" id="success-title">Devis signé !</div>
+  <div class="success-sub" id="success-sub">Votre signature a bien été enregistrée.<br>Starsnett Services va vous recontacter prochainement.</div>
+  <div class="success-num" id="success-num"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="main-content" style="display:none;">
+
+  <!-- RECAP DEVIS -->
+  <div class="card">
+    <div class="card-header">📋 Votre devis</div>
+    <div class="card-body">
+      <div class="devis-num" id="d-num"></div>
+      <div class="devis-date" id="d-date"></div>
+      <div class="info-row"><span class="info-label">Client</span><span id="d-nom"></span></div>
+      <div class="info-row"><span class="info-label">Adresse</span><span id="d-adresse"></span></div>
+      <div class="info-row"><span class="info-label">Type</span><span id="d-type"></span></div>
+      <div class="info-row"><span class="info-label">Commercial</span><span id="d-commercial"></span></div>
+      <div class="info-row"><span class="info-label">Intervention</span><span id="d-date-interv"></span></div>
+
+      <div class="prest-recap" id="d-prestations"></div>
+
+      <div class="montant-box">
+        <div class="montant-label">Montant total TTC</div>
+        <div class="montant-val" id="d-ttc"></div>
+        <div class="montant-sub" id="d-acompte"></div>
+      </div>
+
+      <div class="mentions">
+        Devis ferme, à caractère forfaitaire. Starsnett Services intervient en l'état.
+        Nous nous déchargeons de toute responsabilité en cas de dommage n'étant pas de notre fait.
+        50% à la signature, solde juste après la prestation.
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGNATURE -->
+  <div class="card">
+    <div class="card-header">✍️ Votre signature</div>
+    <div class="card-body">
+      <p class="sig-instruction">En signant, vous acceptez les termes du devis ci-dessus.<br>Signez dans la zone avec votre doigt ou votre stylet.</p>
+      <div class="sig-wrapper" id="sig-wrapper">
+        <canvas id="sig-canvas"></canvas>
+        <div class="sig-placeholder" id="sig-placeholder">✍️ Signez ici</div>
+      </div>
+      <div class="sig-actions">
+        <div class="sig-status" id="sig-status">○ Zone de signature vide</div>
+        <button class="sig-clear" onclick="clearSig()">✕ Effacer</button>
+      </div>
+      <button class="confirm-btn" style="background:var(--grey);color:var(--muted);border:1.5px solid var(--border);margin-bottom:10px;" onclick="signerPlusTard()">
+        ⏳ Je signerai plus tard
+      </button>
+      <button class="confirm-btn" id="confirm-btn" onclick="confirmSignature()" disabled>
+        ✅ Valider et signer le devis
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let devisData = null;
+let sigDrawing = false;
+let sigHasSig = false;
+
+const JSONBIN_KEY = '$2a$10$L35SYtIshzm1IJ6rhDYPqeycBZZBcuglNYp0kukuBVbQidvii5ULW';
+
+// ── PARSE URL ──────────────────────────────────────────────────────────
+async function loadDevis() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const binId = params.get('id');
+    if (!binId) throw new Error('no id');
+
+    const resp = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    if (!resp.ok) throw new Error('fetch error');
+    const data = await resp.json();
+    devisData = data.record;
+    renderDevis();
+    document.getElementById('main-content').style.display = 'block';
+    initSig();
+  } catch(e) {
+    document.getElementById('error-screen').classList.add('show');
+  }
+}
+
+function renderDevis() {
+  const d = devisData;
+  document.getElementById('d-num').textContent = 'Devis N°' + d.num;
+  document.getElementById('d-date').textContent = 'Établi le ' + d.date;
+  document.getElementById('d-nom').textContent = d.nom;
+  document.getElementById('d-adresse').textContent = d.adresse;
+  document.getElementById('d-type').textContent = (d.client || '—') + ' / ' + (d.mission || '—');
+  document.getElementById('d-commercial').textContent = d.commercial || '—';
+  document.getElementById('d-date-interv').textContent = d.dateInterv || '—';
+  document.getElementById('d-ttc').textContent = d.ttc + ' €';
+  if (d.ttc && d.ttc !== '—') {
+    document.getElementById('d-acompte').textContent = 'Acompte à la signature : ' + (parseFloat(d.ttc)/2).toFixed(2) + ' €';
+  }
+  const prestContainer = document.getElementById('d-prestations');
+  d.prestations.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'prest-recap-item';
+    el.textContent = p;
+    prestContainer.appendChild(el);
+  });
+}
+
+// ── SIGNATURE ──────────────────────────────────────────────────────────
+function initSig() {
+  const canvas = document.getElementById('sig-canvas');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = 180 * window.devicePixelRatio;
+  canvas.style.height = '180px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.strokeStyle = '#1B4F8A';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - rect.left), y: (src.clientY - rect.top) };
+  }
+  function startDraw(e) {
+    e.preventDefault(); sigDrawing = true;
+    const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    document.getElementById('sig-placeholder').style.opacity = '0';
+  }
+  function draw(e) {
+    if (!sigDrawing) return; e.preventDefault();
+    const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+  }
+  function endDraw() {
+    if (!sigDrawing) return; sigDrawing = false; sigHasSig = true;
+    document.getElementById('sig-wrapper').classList.add('has-sig');
+    document.getElementById('sig-status').textContent = '✓ Signature enregistrée';
+    document.getElementById('sig-status').className = 'sig-status signed';
+    document.getElementById('confirm-btn').disabled = false;
+  }
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('touchstart', startDraw, {passive:false});
+  canvas.addEventListener('touchmove', draw, {passive:false});
+  canvas.addEventListener('touchend', endDraw);
+}
+
+function clearSig() {
+  const canvas = document.getElementById('sig-canvas');
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  sigHasSig = false;
+  document.getElementById('sig-wrapper').classList.remove('has-sig');
+  document.getElementById('sig-placeholder').style.opacity = '1';
+  document.getElementById('sig-status').textContent = '○ Zone de signature vide';
+  document.getElementById('sig-status').className = 'sig-status';
+  document.getElementById('confirm-btn').disabled = true;
+}
+
+// ── SIGNER PLUS TARD ──────────────────────────────────────────────────
+function signerPlusTard() {
+  document.getElementById('main-content').style.display = 'none';
+  const screen = document.getElementById('success-screen');
+  document.getElementById('success-icon').textContent = '⏳';
+  document.getElementById('success-title').textContent = 'Lien conservé';
+  document.getElementById('success-sub').textContent = 'Vous pouvez revenir signer ce devis quand vous le souhaitez via le même lien. Il reste valable 7 jours.';
+  document.getElementById('success-num').textContent = 'Devis N°' + devisData.num + ' – ' + devisData.nom;
+  screen.classList.add('show');
+  window.scrollTo(0,0);
+}
+
+// ── GENERATE PDF WITH SIGNATURE ────────────────────────────────────────
+async function generateSignedPDF(d, sigDataUrl, now) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, margin = 15, contentW = W - margin * 2;
+  let y = 15;
+  const blue = [27, 79, 138];
+  const yellow = [245, 196, 0];
+  const grey = [247, 248, 250];
+  const muted = [107, 122, 153];
+
+  // Header
+  doc.setFillColor(...blue);
+  doc.rect(0, 0, W, 38, 'F');
+  doc.setTextColor(245, 196, 0);
+  doc.setFontSize(20); doc.setFont('helvetica', 'bold');
+  doc.text('Starsnett', margin, 16);
+  doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+  doc.text('Services', margin + 43, 16);
+  doc.setDrawColor(...yellow); doc.setLineWidth(1.2);
+  doc.line(margin, 19, margin + 65, 19);
+  doc.setFontSize(8); doc.setTextColor(200,220,255);
+  doc.text('83, rue de Reuilly – 75012 Paris  |  01 43 77 58 69  |  contact@starsnett-services.com', margin, 26);
+  doc.text('SARL – SIRET : 523 021 665 00022 – NAF : 8122Z', margin, 31);
+  doc.setTextColor(245,196,0); doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+  doc.text('DEVIS N° ' + d.num, W - margin, 16, { align: 'right' });
+  doc.setTextColor(200,220,255); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+  doc.text(d.date, W - margin, 22, { align: 'right' });
+  doc.text((d.client||'') + ' / ' + (d.mission||''), W - margin, 28, { align: 'right' });
+
+  // Signature électronique badge
+  doc.setFillColor(22, 163, 74);
+  doc.roundedRect(margin, 33, 80, 6, 1, 1, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+  doc.text('✅ DEVIS SIGNÉ ÉLECTRONIQUEMENT – ' + now, margin + 2, 37);
+
+  y = 46;
+
+  // CLIENT
+  doc.setFillColor(...blue); doc.rect(margin, y, contentW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+  doc.text('CLIENT', margin + 3, y + 5); y += 10;
+  doc.setFillColor(...grey); doc.rect(margin, y, contentW, 28, 'F');
+  doc.setDrawColor(209,217,230); doc.rect(margin, y, contentW, 28, 'S');
+  doc.setTextColor(0,0,0);
+  const rows = [['Nom / Société :', d.nom||'—'], ['Adresse :', d.adresse||'—'], ['Téléphone :', d.tel||'—'], ['Email :', d.email||'—']];
+  rows.forEach((r, i) => {
+    doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text(r[0], margin+3, y+6+(i*6));
+    doc.setFont('helvetica','normal');
+    doc.text(r[1], margin+35, y+6+(i*6));
+  });
+  y += 33;
+
+  // PRESTATIONS
+  doc.setFillColor(...blue); doc.rect(margin, y, contentW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('PRESTATIONS', margin+3, y+5); y += 10;
+  d.prestations.forEach((p, i) => {
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFillColor(i%2===0?247:255, i%2===0?248:255, i%2===0?250:255);
+    doc.rect(margin, y, contentW, 7, 'F');
+    doc.setDrawColor(209,217,230); doc.rect(margin, y, contentW, 7, 'S');
+    doc.setFillColor(...blue); doc.rect(margin+2, y+1.5, 4, 4, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.text('v', margin+2.8, y+5);
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    doc.text(p, margin+9, y+5); y += 7;
+  });
+  y += 5;
+
+  // TARIFICATION
+  if (y > 220) { doc.addPage(); y = 20; }
+  doc.setFillColor(...blue); doc.rect(margin, y, contentW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('TARIFICATION', margin+3, y+5); y += 10;
+  const col1 = contentW * 0.6;
+  const col2 = contentW * 0.4;
+  [['Montant HT', (d.ht||'—')+' €', grey], ['TVA (20%)', (d.tva||'—')+' €', [255,255,255]]].forEach(r => {
+    doc.setFillColor(...r[2]); doc.rect(margin, y, col1, 8, 'F'); doc.rect(margin+col1, y, col2, 8, 'F');
+    doc.setDrawColor(209,217,230); doc.rect(margin, y, col1, 8, 'S'); doc.rect(margin+col1, y, col2, 8, 'S');
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text(r[0], margin+3, y+5.5);
+    doc.setFont('helvetica','normal'); doc.text(r[1], margin+col1+3, y+5.5);
+    y += 8;
+  });
+  doc.setFillColor(...blue); doc.rect(margin, y, contentW, 10, 'F');
+  doc.setTextColor(245,196,0); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text('TOTAL TTC', margin+3, y+7);
+  doc.text((d.ttc||'—')+' €', W-margin-3, y+7, { align: 'right' }); y += 14;
+
+  if (d.reglement === 'Virement') {
+    doc.setFillColor(235,242,252); doc.rect(margin, y, contentW, 20, 'F');
+    doc.setDrawColor(...blue); doc.setLineWidth(0.5); doc.rect(margin, y, contentW, 20, 'S');
+    doc.setTextColor(...blue); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+    doc.text('Coordonnees bancaires – BNP Paribas', margin+3, y+5);
+    doc.setFont('helvetica','normal'); doc.setTextColor(0,0,0);
+    doc.text('Titulaire : SARL Starsnett Services', margin+3, y+10);
+    doc.text('IBAN : FR76 3000 4029 5400 0100 5863 495', margin+3, y+15);
+    doc.text('BIC : BNPAFRPPXXX', margin+100, y+15); y += 24;
+  }
+  y += 5;
+
+  // Mentions
+  if (y > 240) { doc.addPage(); y = 20; }
+  doc.setTextColor(...muted); doc.setFont('helvetica','italic'); doc.setFontSize(7.5);
+  doc.text("Starsnett services intervient en l'etat. Nous nous dechargeons de toute responsabilite pour dommages non imputables.", margin, y, { maxWidth: contentW }); y += 6;
+  doc.setFont('helvetica','bold'); doc.setTextColor(...blue); doc.setFontSize(9);
+  doc.text('Devis ferme, a caractere forfaitaire.', W/2, y, { align: 'center' }); y += 10;
+
+  // SIGNATURE ZONE
+  if (y > 220) { doc.addPage(); y = 20; }
+  const halfW = (contentW - 5) / 2;
+  doc.setFillColor(...grey); doc.setDrawColor(...blue);
+  doc.rect(margin, y, halfW, 7, 'F'); doc.rect(margin, y, halfW, 7, 'S');
+  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('Bon pour accord le : ' + now.split(' ')[0], margin+3, y+5);
+  doc.setFillColor(...grey);
+  doc.rect(margin+halfW+5, y, halfW, 7, 'F'); doc.rect(margin+halfW+5, y, halfW, 7, 'S');
+  doc.text('Signature electronique du client :', margin+halfW+8, y+5); y += 7;
+
+  // Left box: empty (Starsnett)
+  doc.setDrawColor(...blue); doc.rect(margin, y, halfW, 35, 'S');
+  doc.setTextColor(...muted); doc.setFontSize(8); doc.setFont('helvetica','italic');
+  doc.text('Tampon Starsnett Services', margin+3, y+18);
+
+  // Right box: CLIENT SIGNATURE IMAGE
+  doc.setDrawColor(22,163,74); doc.setLineWidth(1);
+  doc.rect(margin+halfW+5, y, halfW, 35, 'S');
+  doc.setLineWidth(0.5);
+  // Add signature image
+  try {
+    doc.addImage(sigDataUrl, 'PNG', margin+halfW+7, y+2, halfW-4, 30);
+  } catch(e) {}
+  // Green validated badge under signature
+  doc.setFillColor(22,163,74);
+  doc.rect(margin+halfW+5, y+30, halfW, 5, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+  doc.text('✅ Signature validee le ' + now, margin+halfW+7, y+34);
+  y += 40;
+
+  // 50%
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...blue);
+  doc.text('50% a la Signature – Solde juste apres la prestation', W/2, y, { align: 'center' }); y += 8;
+
+  // Footer
+  doc.setFillColor(...blue); doc.rect(0, 287, W, 10, 'F');
+  doc.setTextColor(200,220,255); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+  doc.text('Tel : 01 43 77 58 69  –  contact@starsnett-services.com  –  83, Rue de Reuilly, 75012 Paris  –  RCS Paris : 523 021 665', W/2, 293, { align: 'center' });
+
+  return doc;
+}
+
+// ── CONFIRM & NOTIFY ───────────────────────────────────────────────────
+async function confirmSignature() {
+  if (!sigHasSig) return;
+  const btn = document.getElementById('confirm-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Génération du PDF signé…';
+
+  const canvas = document.getElementById('sig-canvas');
+  const sigDataUrl = canvas.toDataURL('image/png');
+  const d = devisData;
+  const now = new Date().toLocaleString('fr-FR');
+
+  // Generate PDF
+  let doc;
+  try {
+    doc = await generateSignedPDF(d, sigDataUrl, now);
+    const filename = 'Devis_Signe_' + d.num + '_' + (d.nom||'client').replace(/[^a-zA-Z0-9]/g,'_') + '.pdf';
+    doc.save(filename);
+    btn.textContent = '📧 Envoi de la notification…';
+  } catch(e) {
+    console.error('PDF error:', e);
+  }
+
+  // Email to Starsnett
+  const subject = encodeURIComponent('✅ Devis ' + d.num + ' SIGNÉ – ' + d.nom);
+  const body = encodeURIComponent(
+'Devis N° : ' + d.num + '\n' +
+'Signé le : ' + now + '\n' +
+'Client   : ' + d.nom + '\n' +
+'Tél      : ' + d.tel + '\n' +
+'Adresse  : ' + d.adresse + '\n' +
+'TTC      : ' + d.ttc + ' €\n\n' +
+'Le PDF signé a été téléchargé sur le téléphone du client.\n' +
+'✅ Signature électronique validée.'
+  );
+  window.location.href = 'mailto:starsnettinfo@gmail.com?subject=' + subject + '&body=' + body;
+
+  setTimeout(() => {
+    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('success-num').textContent = 'Devis N°' + d.num + ' – ' + d.nom + ' – ' + now;
+    document.getElementById('success-screen').classList.add('show');
+    window.scrollTo(0,0);
+  }, 1500);
+}
+
+loadDevis();
+</script>
+</body>
+</html>

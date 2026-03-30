@@ -78,6 +78,7 @@
   .error-sub { font-size: 14px; color: var(--muted); }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -447,26 +448,54 @@ async function confirmSignature() {
     console.error('PDF error:', e);
   }
 
-  // Email to Starsnett
-  const subject = encodeURIComponent('✅ Devis ' + d.num + ' SIGNÉ – ' + d.nom);
-  const body = encodeURIComponent(
-'Devis N° : ' + d.num + '\n' +
-'Signé le : ' + now + '\n' +
-'Client   : ' + d.nom + '\n' +
-'Tél      : ' + d.tel + '\n' +
-'Adresse  : ' + d.adresse + '\n' +
-'TTC      : ' + d.ttc + ' €\n\n' +
-'Le PDF signé a été téléchargé sur le téléphone du client.\n' +
-'✅ Signature électronique validée.'
-  );
-  window.location.href = 'mailto:starsnettinfo@gmail.com?subject=' + subject + '&body=' + body;
+  // Send emails via EmailJS
+  btn.textContent = '📧 Envoi des emails…';
+  try {
+    emailjs.init('P9JKuzyybrE9K9PDF');
 
-  setTimeout(() => {
-    document.getElementById('main-content').style.display = 'none';
-    document.getElementById('success-num').textContent = 'Devis N°' + d.num + ' – ' + d.nom + ' – ' + now;
-    document.getElementById('success-screen').classList.add('show');
-    window.scrollTo(0,0);
-  }, 1500);
+    const templateParams = {
+      to_email: d.email || 'starsnettinfo@gmail.com',
+      devis_num: d.num,
+      client_nom: (d.prenom || '') + ' ' + d.nom + (d.societe ? ' – ' + d.societe : ''),
+      client_tel: d.tel || '—',
+      montant_ttc: d.ttc || '—',
+      date_signature: now,
+      adresse: d.adresse || '—',
+      prestations: d.prestations ? d.prestations.join(', ') : '—',
+      commercial: d.commercial || '—',
+      reglement: d.reglement || '—',
+    };
+
+    // Email au client (si email renseigné)
+    if (d.email) {
+      await emailjs.send('service_syotukv', 'k88xl7p', {
+        ...templateParams,
+        to_email: d.email
+      });
+    }
+
+    // Email à Starsnett
+    await emailjs.send('service_syotukv', 'k88xl7p', {
+      ...templateParams,
+      to_email: 'starsnettinfo@gmail.com'
+    });
+
+    showSuccess(d.num, d.nom, now);
+  } catch(e) {
+    console.error('EmailJS error:', e);
+    // Fallback mailto
+    const subject = encodeURIComponent('✅ Devis ' + d.num + ' SIGNÉ – ' + d.nom);
+    const body = encodeURIComponent('Devis N° : ' + d.num + '\nSigné le : ' + now + '\nClient : ' + d.nom + '\nTTC : ' + d.ttc + ' €\n✅ Signature électronique validée.');
+    window.location.href = 'mailto:starsnettinfo@gmail.com?subject=' + subject + '&body=' + body;
+    showSuccess(d.num, d.nom, now);
+  }
+}
+
+function showSuccess(num, nom, now) {
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('success-num').textContent = 'Devis N°' + num + ' – ' + nom + ' – ' + now;
+  document.getElementById('success-screen').classList.add('show');
+  window.scrollTo(0,0);
 }
 
 loadDevis();

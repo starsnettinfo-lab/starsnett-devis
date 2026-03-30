@@ -369,6 +369,30 @@
         <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#B45309;margin-bottom:6px;">💳 Paiement par CB via SumUp</div>
         <div style="font-size:14px;color:#1A1A2E;">Encaissement à effectuer sur le terminal <strong>SumUp</strong> au moment de la prestation ou à la signature.<br><span style="font-size:12px;color:#6B7A99;">Acompte 50% à la signature – Solde après prestation.</span></div>
       </div>
+
+      <!-- ACOMPTE -->
+      <div style="margin-top:16px;background:#F0FDF4;border:1.5px solid #16A34A;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#16A34A;margin-bottom:12px;">💰 Acompte versé</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field">
+            <label>Montant acompte (€)</label>
+            <input type="number" id="acompte-montant" placeholder="0.00" step="0.01" oninput="updateSolde()">
+          </div>
+          <div class="field">
+            <label>Solde restant (€)</label>
+            <input type="number" id="solde-restant" placeholder="0.00" readonly style="color:var(--blue);font-weight:600;">
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;display:block;margin-bottom:8px;">Moyen de paiement de l'acompte</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="reg-btn" onclick="selectAcompte(this)" data-val="Virement">🏦 Virement</button>
+            <button class="reg-btn" onclick="selectAcompte(this)" data-val="CB (SumUp)">💳 CB – SumUp</button>
+            <button class="reg-btn" onclick="selectAcompte(this)" data-val="Chèque">📝 Chèque</button>
+            <button class="reg-btn" onclick="selectAcompte(this)" data-val="Espèces">💵 Espèces</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -437,7 +461,7 @@
 </div>
 
 <script>
-const state = { client:'', mission:'', commercial:'', reglement:'', lessivage:false, logement:'' };
+const state = { client:'', mission:'', commercial:'', reglement:'', lessivage:false, logement:'', acompteReg:'' };
 let currentDevisId = null;
 
 function init() {
@@ -495,7 +519,21 @@ function calcTTC() {
   const tva = ht * 0.20;
   document.getElementById('montant-tva').value = tva > 0 ? tva.toFixed(2) : '';
   document.getElementById('montant-ttc').value = ht > 0 ? (ht + tva).toFixed(2) : '';
+  updateSolde();
   updateProgress();
+}
+
+function updateSolde() {
+  const ttc = parseFloat(document.getElementById('montant-ttc').value) || 0;
+  const acompte = parseFloat(document.getElementById('acompte-montant').value) || 0;
+  const solde = ttc - acompte;
+  document.getElementById('solde-restant').value = solde > 0 ? solde.toFixed(2) : '';
+}
+
+function selectAcompte(btn) {
+  document.querySelectorAll('[onclick*="selectAcompte"]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.acompteReg = btn.dataset.val;
 }
 
 function selectReg(btn) {
@@ -559,6 +597,9 @@ function collectData() {
     reglement: state.reglement,
     dateInterv: dateStr,
     notes: document.getElementById('notes').value.trim(),
+    acompteMontant: document.getElementById('acompte-montant').value || '—',
+    acompteReg: state.acompteReg,
+    soldeRestant: document.getElementById('solde-restant').value || '—',
   };
 }
 
@@ -883,12 +924,12 @@ async function generatePDF() {
     doc.setTextColor(...blue);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    doc.text('Coordonnées bancaires – BNP Paribas', margin + 3, y + 5);
+    doc.text("Coordonnees bancaires - BNP Paribas", margin + 3, y + 5);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0,0,0);
-    doc.text('Titulaire : SARL Starsnett Services', margin + 3, y + 10);
-    doc.text('IBAN : FR76 3000 4029 5400 0100 5863 495', margin + 3, y + 15);
-    doc.text('BIC : BNPAFRPPXXX', margin + 100, y + 15);
+    doc.text("Titulaire : SARL Starsnett Services", margin + 3, y + 10);
+    doc.text("IBAN : FR76 3000 4029 5400 0100 5863 495", margin + 3, y + 15);
+    doc.text("BIC : BNPAFRPPXXX", margin + 100, y + 15);
     y += 24;
   }
 
@@ -898,7 +939,7 @@ async function generatePDF() {
   if (d.dateInterv) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.text('Date d'intervention : ', margin, y);
+    doc.text("Date d'intervention : ", margin, y);
     doc.setFont('helvetica', 'normal');
     doc.text(d.dateInterv, margin + 42, y);
     y += 8;
@@ -909,12 +950,12 @@ async function generatePDF() {
   doc.setTextColor(...muted);
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(7.5);
-  doc.text('Starsnett services intervient en l'état. Nous nous déchargeons de toute responsabilité en cas de dommage n'étant pas de notre fait.', margin, y, { maxWidth: contentW });
+  doc.text("Starsnett services intervient en l'etat. Nous nous dechargeons de toute responsabilite en cas de dommage n'etant pas de notre fait.", margin, y, { maxWidth: contentW });
   y += 6;
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...blue);
   doc.setFontSize(9);
-  doc.text('Devis ferme, à caractère forfaitaire.', W / 2, y, { align: 'center' });
+  doc.text("Devis ferme, a caractere forfaitaire.", W / 2, y, { align: "center" });
   y += 8;
 
   // ── Signatures
@@ -928,12 +969,12 @@ async function generatePDF() {
   doc.rect(margin, y, halfW, 7, 'F');
   doc.setDrawColor(...blue);
   doc.rect(margin, y, halfW, 7, 'S');
-  doc.text('Bon pour accord le :', margin + 3, y + 5);
+  doc.text("Bon pour accord le :", margin + 3, y + 5);
 
   doc.setFillColor(...grey);
   doc.rect(margin + halfW + 5, y, halfW, 7, 'F');
   doc.rect(margin + halfW + 5, y, halfW, 7, 'S');
-  doc.text('Tampon et signature du client :', margin + halfW + 8, y + 5);
+  doc.text("Tampon et signature du client :", margin + halfW + 8, y + 5);
   y += 7;
 
   doc.setDrawColor(...blue);
@@ -945,7 +986,7 @@ async function generatePDF() {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(...blue);
-  doc.text('50% à la Signature – Solde juste après la prestation', W / 2, y, { align: 'center' });
+  doc.text("50% a la Signature - Solde juste apres la prestation", W / 2, y, { align: "center" });
 
   // ── Footer
   doc.setFillColor(...blue);
@@ -985,6 +1026,8 @@ TARIFICATION
 Montant HT   : ${d.ht} €
 TVA (20%)    : ${d.tva} €
 TOTAL TTC    : ${d.ttc} €
+Acompte versé: ${d.acompteMontant} €  (${d.acompteReg || '—'})
+Solde restant: ${d.soldeRestant} €
 Règlement    : ${d.reglement || '—'}${d.reglement === 'Virement' ? '\nIBAN         : FR76 3000 4029 5400 0100 5863 495\nBIC          : BNPAFRPPXXX\nTitulaire    : SARL Starsnett Services' : ''}
 Acompte 50%  : ${d.ttc !== '—' ? (parseFloat(d.ttc)/2).toFixed(2) + ' €' : '—'}
 
@@ -1091,7 +1134,7 @@ function resetForm() {
   state.logement = '';
   document.getElementById('lessivage-sub').classList.remove('visible');
   document.getElementById('sig-link-box').classList.remove('visible');
-  state.client=''; state.mission=''; state.commercial=''; state.reglement=''; state.lessivage=false;
+  state.client=''; state.mission=''; state.commercial=''; state.reglement=''; state.lessivage=false; state.acompteReg=''; state.logement='';
   calcTTC(); init();
   showToast('🗑️ Formulaire réinitialisé');
 }

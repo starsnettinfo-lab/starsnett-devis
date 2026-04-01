@@ -17,7 +17,6 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: #EEF3FA; color: var(--text); min-height: 100vh; padding-bottom: 100px; }
   .app-header { background: var(--blue); color: white; padding: 18px 24px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(27,79,138,0.25); }
-  .logo { display: flex; align-items: center; gap: 10px; }
   .logo-sub { font-size: 11px; opacity: 0.7; font-weight: 300; }
   .devis-num { text-align: right; font-size: 12px; opacity: 0.8; }
   .devis-num strong { display: block; font-size: 18px; opacity: 1; color: var(--yellow); }
@@ -38,6 +37,7 @@
   .field input, .field textarea, .field select { width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 11px 14px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text); background: var(--grey); transition: border-color 0.18s; outline: none; resize: none; }
   .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--blue); background: var(--white); }
   .field textarea { min-height: 72px; }
+  .autocomplete-box { position: absolute; z-index: 500; background: white; border: 1.5px solid var(--border); border-radius: 9px; box-shadow: var(--shadow); max-width: 500px; width: 90%; display: none; }
   .prest-list { display: flex; flex-direction: column; gap: 6px; }
   .prest-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--grey); cursor: pointer; transition: all 0.18s; user-select: none; }
   .prest-item:hover { border-color: var(--blue-mid); background: var(--blue-light); }
@@ -58,8 +58,8 @@
   .reglement-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
   .reg-btn { border: 1.5px solid var(--border); background: var(--grey); border-radius: 8px; padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.18s; }
   .reg-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); font-weight: 600; }
-  .send-section { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); padding: 14px 16px; display: flex; gap: 10px; box-shadow: 0 -4px 24px rgba(27,79,138,0.12); z-index: 100; }
-  .btn { flex: 1; padding: 15px 10px; border: none; border-radius: 11px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.18s; }
+  .send-section { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); padding: 14px 16px; display: flex; gap: 10px; box-shadow: 0 -4px 24px rgba(27,79,138,0.12); z-index: 100; flex-wrap: wrap; }
+  .btn { flex: 1; padding: 15px 10px; border: none; border-radius: 11px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.18s; min-width: 130px; }
   .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--text); color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .tab-bar { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
@@ -75,12 +75,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+
 <header class="app-header">
-  <div class="logo">
-    <div>
-      <div style="font-size:22px;font-weight:700;color:var(--yellow);">⭐ Starsnett</div>
-      <div class="logo-sub">Formulaire de devis commercial</div>
-    </div>
+  <div>
+    <div style="font-size:22px;font-weight:700;color:var(--yellow);">⭐ Starsnett Services</div>
+    <div class="logo-sub">Formulaire de devis commercial</div>
   </div>
   <div class="devis-num">
     <strong id="num-display">#—</strong>
@@ -91,7 +90,8 @@
 <div class="toast" id="toast"></div>
 
 <div class="main">
-  <!-- TYPE -->
+
+  <!-- TYPE DE MISSION -->
   <div class="card">
     <div class="card-header">🏷️ Type de mission</div>
     <div class="card-body">
@@ -106,7 +106,7 @@
     </div>
   </div>
 
-  <!-- CLIENT -->
+  <!-- INFORMATIONS CLIENT -->
   <div class="card">
     <div class="card-header">👤 Informations client</div>
     <div class="card-body">
@@ -116,16 +116,17 @@
           <div class="field"><label>Nom *</label><input type="text" id="client-nom" placeholder="Ex: Dupont" oninput="updateProgress()"></div>
         </div>
         <div class="form-grid form-grid-2">
-          <div class="field"><label>Nom de la société</label><input type="text" id="client-societe" placeholder="Ex: SARL XYZ"></div>
-          <div class="field"><label>Nom de l'interlocuteur</label><input type="text" id="client-interlocuteur" placeholder="Ex: M. Martin"></div>
+          <div class="field"><label>Nom de la société</label><input type="text" id="client-societe" placeholder="Ex: SARL XYZ (si professionnel)"></div>
+          <div class="field"><label>Nom de l'interlocuteur</label><input type="text" id="client-interlocuteur" placeholder="Ex: M. Martin (si différent)"></div>
         </div>
         <div class="form-grid form-grid-2">
           <div class="field"><label>Téléphone * (pour SMS/WA)</label><input type="tel" id="client-tel" placeholder="06 xx xx xx xx" oninput="updateProgress()"></div>
-          <div class="field"><label>Email</label><input type="email" id="client-email" placeholder="client@email.com" oninput="updateProgress()"></div>
+          <div class="field"><label>Email (pour lien signature)</label><input type="email" id="client-email" placeholder="client@email.com" oninput="updateProgress()"></div>
         </div>
-        <div class="field">
+        <div class="field" style="position:relative;">
           <label>N° et nom de rue *</label>
-          <input type="text" id="client-rue" placeholder="Ex: 83 rue de Reuilly" oninput="updateProgress()" autocomplete="off">
+          <input type="text" id="client-rue" placeholder="Ex: 83 rue de Reuilly" oninput="autocompleteAdresse(this.value); updateProgress()" autocomplete="off">
+          <div class="autocomplete-box" id="autocomplete-list"></div>
         </div>
         <div class="form-grid form-grid-2">
           <div class="field"><label>Code postal *</label><input type="text" id="client-cp" placeholder="75012" maxlength="5" oninput="updateProgress()"></div>
@@ -137,7 +138,7 @@
             <div class="field"><label>Nom sur la sonnette</label><input type="text" id="client-nom-sonnette" placeholder="Nom affiché"></div>
             <div class="field"><label>Digicode / Interphone</label><input type="text" id="client-digicode" placeholder="Ex: A1234"></div>
           </div>
-          <div class="field" style="margin-top:10px;"><label>Informations complémentaires accès</label><input type="text" id="client-acces" placeholder="Ex: 2ème étage, porte gauche..."></div>
+          <div class="field" style="margin-top:10px;"><label>Informations complémentaires accès</label><input type="text" id="client-acces" placeholder="Ex: 2ème étage, porte gauche, gardien..."></div>
         </div>
         <div class="field"><label>Recommandé par</label><input type="text" id="client-reco" placeholder="Nom du prescripteur / source"></div>
       </div>
@@ -152,6 +153,8 @@
         <button class="tab-btn active" onclick="switchTab('part', this)">🏠 Particuliers</button>
         <button class="tab-btn" onclick="switchTab('pro', this)">🏢 Professionnels</button>
       </div>
+
+      <!-- PARTICULIERS -->
       <div class="tab-panel active" id="tab-part">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
           <button class="toggle-btn" data-group="logement" data-val="Maison" onclick="selectType(this)"><span class="check">✓</span> 🏡 Maison</button>
@@ -162,66 +165,97 @@
           <div class="prest-list">
             <div class="prest-item" onclick="togglePrest(this)" data-id="remise"><div class="prest-checkbox">✓</div><div class="prest-label">Remise en état complet<small>Sols, vitres, cuisine, SdB, portes, interrupteurs, radiateurs</small></div></div>
             <div class="lessivage-sub" id="lessivage-sub" onclick="toggleLessivage(this)"><div class="prest-checkbox" id="lessivage-check">✓</div><span style="font-size:14px;font-weight:500;">Inclure le lessivage des murs</span></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="maison"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage maison<small>Avant / après déménagement</small></div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="appartement"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage appartement / studio</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="vitres"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des vitres et baies vitrées</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="balcons"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des balcons et terrasses</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="sols"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des sols</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="cuisine"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage de la cuisine</div></div>
-            <div class="prest-item" onclick="togglePrest(this)" data-id="sanitaires"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des sanitaires</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="sanitaires"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des sanitaires (WC et salle de bain)</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="moquette"><div class="prest-checkbox">✓</div><div class="prest-label">Shampouinage de la moquette</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="lessivage"><div class="prest-checkbox">✓</div><div class="prest-label">Lessivage des murs et plafonds</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="debarras"><div class="prest-checkbox">✓</div><div class="prest-label">Débarras des encombrants</div></div>
           </div>
         </div>
         <div class="prest-group">
+          <div class="prest-group-title">🏢 Nettoyage immobilier</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="immeuble"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage d'immeuble</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="copropriete"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage copropriété<small>Parties communes, hall, escaliers</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="parking"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage parking</div></div>
+          </div>
+        </div>
+        <div class="prest-group">
           <div class="prest-group-title">⚡ Situations spécifiques</div>
           <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="etat-lieux"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage pour état des lieux<small>Entrée ou sortie</small></div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="chantier"><div class="prest-checkbox">✓</div><div class="prest-label">Fin de chantier</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="demenagement"><div class="prest-checkbox">✓</div><div class="prest-label">Après déménagement</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="incendie"><div class="prest-checkbox">✓</div><div class="prest-label">Après incendie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="degat-eaux"><div class="prest-checkbox">✓</div><div class="prest-label">Après dégât des eaux</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="deces"><div class="prest-checkbox">✓</div><div class="prest-label">Après décès</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="insalubre"><div class="prest-checkbox">✓</div><div class="prest-label">Logement insalubre</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="diogene"><div class="prest-checkbox">✓</div><div class="prest-label">Syndrome de Diogène</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="fientes"><div class="prest-checkbox">✓</div><div class="prest-label">Salissures animalières / fientes de pigeons</div></div>
           </div>
         </div>
       </div>
+
+      <!-- PROFESSIONNELS -->
       <div class="tab-panel" id="tab-pro">
         <div class="prest-group">
           <div class="prest-group-title">🏢 Bureaux & Locaux</div>
           <div class="prest-list">
             <div class="prest-item" onclick="togglePrest(this)" data-id="pro-bureaux"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage des bureaux / open space</div></div>
-            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sols"><div class="prest-checkbox">✓</div><div class="prest-label">Entretien des sols</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sols"><div class="prest-checkbox">✓</div><div class="prest-label">Entretien des sols<small>Aspiration, lavage, décapage, cristallisation</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-vitres-int"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage vitres intérieures</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-cloisons"><div class="prest-checkbox">✓</div><div class="prest-label">Cloisons vitrées</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sanitaires"><div class="prest-checkbox">✓</div><div class="prest-label">Sanitaires / vestiaires</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-reunion"><div class="prest-checkbox">✓</div><div class="prest-label">Salle de réunion / conférence</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-parties"><div class="prest-checkbox">✓</div><div class="prest-label">Parties communes / hall d'entrée</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="pro-chantier"><div class="prest-checkbox">✓</div><div class="prest-label">Fin de chantier / remise en état</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-entrepot"><div class="prest-checkbox">✓</div><div class="prest-label">Entrepôt / local industriel</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-parking"><div class="prest-checkbox">✓</div><div class="prest-label">Nettoyage parking</div></div>
           </div>
         </div>
         <div class="prest-group">
-          <div class="prest-group-title">🍽️ Restauration</div>
+          <div class="prest-group-title">🍽️ Restauration & Métiers de bouche</div>
           <div class="prest-list">
-            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-cuisine-pro"><div class="prest-checkbox">✓</div><div class="prest-label">Cuisine professionnelle</div></div>
-            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-restaurant"><div class="prest-checkbox">✓</div><div class="prest-label">Restaurant / brasserie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-cuisine-pro"><div class="prest-checkbox">✓</div><div class="prest-label">Cuisine professionnelle<small>Hottes, équipements, plans de travail, carrelages</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-restaurant"><div class="prest-checkbox">✓</div><div class="prest-label">Restaurant / brasserie<small>Salle, cuisine, sanitaires, sols</small></div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="pro-boulangerie"><div class="prest-checkbox">✓</div><div class="prest-label">Boulangerie / pâtisserie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-boucherie"><div class="prest-checkbox">✓</div><div class="prest-label">Boucherie / charcuterie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-labo"><div class="prest-checkbox">✓</div><div class="prest-label">Laboratoire alimentaire / agroalimentaire</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-traiteur"><div class="prest-checkbox">✓</div><div class="prest-label">Traiteur / cuisine centrale</div></div>
           </div>
         </div>
         <div class="prest-group">
-          <div class="prest-group-title">🏥 Santé</div>
+          <div class="prest-group-title">🏥 Cabinets médicaux & Santé</div>
           <div class="prest-list">
             <div class="prest-item" onclick="togglePrest(this)" data-id="pro-med-gen"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet médecin généraliste</div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="pro-dentiste"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet dentaire</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-kine"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet kinésithérapeute / ostéopathe</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-infirmier"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet infirmier / paramédical</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-specialiste"><div class="prest-checkbox">✓</div><div class="prest-label">Cabinet spécialiste<small>Cardiologue, dermatologue, ophtalmologue...</small></div></div>
             <div class="prest-item" onclick="togglePrest(this)" data-id="pro-ehpad"><div class="prest-checkbox">✓</div><div class="prest-label">EHPAD / maison de retraite</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-creche"><div class="prest-checkbox">✓</div><div class="prest-label">Crèche / halte-garderie</div></div>
           </div>
         </div>
         <div class="prest-group">
-          <div class="prest-group-title">🏪 Commerces</div>
+          <div class="prest-group-title">🏪 Commerces & Autres</div>
           <div class="prest-list">
             <div class="prest-item" onclick="togglePrest(this)" data-id="pro-magasin"><div class="prest-checkbox">✓</div><div class="prest-label">Magasin / commerce de détail</div></div>
-            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-evenement"><div class="prest-checkbox">✓</div><div class="prest-label">Salle des fêtes / événementiel</div></div>
-            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sinistre"><div class="prest-checkbox">✓</div><div class="prest-label">Après sinistre</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-coiffure"><div class="prest-checkbox">✓</div><div class="prest-label">Salon de coiffure / esthétique</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sport"><div class="prest-checkbox">✓</div><div class="prest-label">Salle de sport / fitness</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-evenement"><div class="prest-checkbox">✓</div><div class="prest-label">Salle des fêtes / événementiel<small>Avant ou après événement</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sinistre"><div class="prest-checkbox">✓</div><div class="prest-label">Après sinistre<small>Incendie / dégât des eaux</small></div></div>
           </div>
         </div>
       </div>
+
       <div class="field" style="margin-top:14px;">
         <label>Prestations supplémentaires / précisions</label>
-        <textarea id="prest-supp" placeholder="Préciser ici toute prestation hors liste..."></textarea>
+        <textarea id="prest-supp" placeholder="Préciser ici toute prestation hors liste, fréquence, contraintes particulières..."></textarea>
       </div>
     </div>
   </div>
@@ -243,14 +277,32 @@
         <button class="reg-btn" onclick="selectReg(this)" data-val="Espèces">💵 Espèces</button>
       </div>
       <div id="rib-box" style="display:none;margin-top:14px;background:#EBF2FC;border:1.5px solid #1B4F8A;border-radius:10px;padding:14px;">
-        <div style="font-size:12px;font-weight:700;color:#1B4F8A;margin-bottom:10px;">🏦 Coordonnées bancaires – BNP Paribas</div>
-        <div style="font-size:14px;">Titulaire : <strong>SARL Starsnett Services</strong><br>IBAN : <strong>FR76 3000 4029 5400 0100 5863 495</strong><br>BIC : <strong>BNPAFRPPXXX</strong></div>
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#1B4F8A;margin-bottom:10px;">🏦 Coordonnées bancaires – BNP Paribas</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px;">
+          <div><span style="color:#6B7A99;font-size:12px;font-weight:600;">Titulaire</span><br><strong>SARL Starsnett Services</strong></div>
+          <div><span style="color:#6B7A99;font-size:12px;font-weight:600;">Banque</span><br><strong>BNP Paribas</strong></div>
+          <div style="grid-column:span 2;"><span style="color:#6B7A99;font-size:12px;font-weight:600;">IBAN</span><br><strong style="letter-spacing:1px;">FR76 3000 4029 5400 0100 5863 495</strong></div>
+          <div><span style="color:#6B7A99;font-size:12px;font-weight:600;">BIC</span><br><strong>BNPAFRPPXXX</strong></div>
+        </div>
+      </div>
+      <div id="sumup-box" style="display:none;margin-top:14px;background:#FFF8E7;border:1.5px solid #F5C400;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#B45309;margin-bottom:6px;">💳 Paiement par CB via SumUp</div>
+        <div style="font-size:14px;">Encaissement sur le terminal <strong>SumUp</strong> au moment de la prestation ou à la signature.</div>
       </div>
       <div style="margin-top:16px;background:#F0FDF4;border:1.5px solid #16A34A;border-radius:10px;padding:14px;">
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:#16A34A;margin-bottom:12px;">💰 Acompte versé</div>
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#16A34A;margin-bottom:12px;">💰 Acompte versé</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div class="field"><label>Montant acompte (€)</label><input type="number" id="acompte-montant" placeholder="0.00" step="0.01" oninput="updateSolde()"></div>
           <div class="field"><label>Solde restant (€)</label><input type="number" id="solde-restant" placeholder="0.00" readonly style="color:var(--blue);font-weight:600;"></div>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;display:block;margin-bottom:8px;">Moyen de paiement de l'acompte</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="reg-btn" onclick="selectAcompte(this)" data-val="Virement">🏦 Virement</button>
+            <button class="reg-btn" onclick="selectAcompte(this)" data-val="CB (SumUp)">💳 CB – SumUp</button>
+            <button class="reg-btn" onclick="selectAcompte(this)" data-val="Chèque">📝 Chèque</button>
+            <button class="reg-btn" onclick="selectAcompte(this)" data-val="Espèces">💵 Espèces</button>
+          </div>
         </div>
       </div>
     </div>
@@ -285,13 +337,13 @@
   <button class="reset-btn" onclick="resetForm()">🗑️ Réinitialiser le formulaire</button>
 </div>
 
-<!-- SEND BAR -->
-<div class="send-section" style="flex-wrap:wrap;gap:8px;">
-  <button class="btn" style="background:#6D28D9;color:white;flex:1;min-width:130px;" onclick="generatePDF()">📄 Devis PDF</button>
-  <button class="btn" style="background:#0F766E;color:white;flex:1;min-width:130px;" onclick="generateBonIntervention()">📋 Bon d'intervention</button>
-  <button class="btn" style="background:#1B4F8A;color:white;flex:1;min-width:130px;" onclick="sendEmail()">✉️ Envoyer à Starsnett</button>
-  <button class="btn" style="background:#0EA5E9;color:white;flex:1;min-width:130px;" onclick="sendCopyToClient()">📨 Copie au client</button>
-  <button class="btn" style="background:#25D366;color:white;flex:1;min-width:140px;" onclick="sendWhatsApp()">💬 Envoyer via WhatsApp</button>
+<!-- BARRE D'ENVOI -->
+<div class="send-section">
+  <button class="btn" style="background:#6D28D9;color:white;" onclick="generatePDF()">📄 Devis PDF</button>
+  <button class="btn" style="background:#0F766E;color:white;" onclick="generateBonIntervention()">📋 Bon d'intervention</button>
+  <button class="btn" style="background:#1B4F8A;color:white;" onclick="sendEmail()">✉️ Envoyer à Starsnett</button>
+  <button class="btn" style="background:#0EA5E9;color:white;" onclick="sendCopyToClient()">📨 Copie au client</button>
+  <button class="btn" style="background:#25D366;color:white;" onclick="sendWhatsApp()">💬 Envoyer via WhatsApp</button>
 </div>
 
 <script>
@@ -302,12 +354,10 @@ function init() {
   const now = new Date();
   const initial = state.commercial === 'Oumar Kébé' ? 'OK' : state.commercial === 'H. Nimaga' ? 'HN' : 'XX';
   currentDevisId = initial + '-' + now.getFullYear().toString().slice(2) +
-    String(now.getMonth()+1).padStart(2,'0') +
-    String(now.getDate()).padStart(2,'0') + '-' +
+    String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' +
     String(Math.floor(Math.random()*9000)+1000);
   document.getElementById('num-display').textContent = '#' + currentDevisId;
-  document.getElementById('date-display').textContent =
-    now.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+  document.getElementById('date-display').textContent = now.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
   document.getElementById('interv-date').value = now.toISOString().split('T')[0];
   updateProgress();
 }
@@ -321,8 +371,7 @@ function selectType(btn) {
     const now = new Date();
     const initial = state.commercial === 'Oumar Kébé' ? 'OK' : 'HN';
     currentDevisId = initial + '-' + now.getFullYear().toString().slice(2) +
-      String(now.getMonth()+1).padStart(2,'0') +
-      String(now.getDate()).padStart(2,'0') + '-' +
+      String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' +
       String(Math.floor(Math.random()*9000)+1000);
     document.getElementById('num-display').textContent = '#' + currentDevisId;
   }
@@ -341,6 +390,10 @@ function togglePrest(item) {
 function toggleLessivage(el) {
   el.classList.toggle('checked-sub');
   state.lessivage = el.classList.contains('checked-sub');
+  const chk = document.getElementById('lessivage-check');
+  chk.style.background = state.lessivage ? '#1B4F8A' : '';
+  chk.style.borderColor = state.lessivage ? '#1B4F8A' : '';
+  chk.style.color = state.lessivage ? 'white' : '';
 }
 
 function calcTTC() {
@@ -348,8 +401,7 @@ function calcTTC() {
   const tva = ht * 0.20;
   document.getElementById('montant-tva').value = tva > 0 ? tva.toFixed(2) : '';
   document.getElementById('montant-ttc').value = ht > 0 ? (ht + tva).toFixed(2) : '';
-  updateSolde();
-  updateProgress();
+  updateSolde(); updateProgress();
 }
 
 function updateSolde() {
@@ -359,18 +411,25 @@ function updateSolde() {
   document.getElementById('solde-restant').value = solde > 0 ? solde.toFixed(2) : '';
 }
 
+function selectAcompte(btn) {
+  document.querySelectorAll('[onclick*="selectAcompte"]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.acompteReg = btn.dataset.val;
+}
+
 function selectReg(btn) {
   document.querySelectorAll('.reg-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   state.reglement = btn.dataset.val;
   document.getElementById('rib-box').style.display = btn.dataset.val === 'Virement' ? 'block' : 'none';
+  document.getElementById('sumup-box').style.display = btn.dataset.val === 'CB (SumUp)' ? 'block' : 'none';
 }
 
 function updateProgress() {
   let score = 0;
   if (state.client) score++;
   if (state.mission) score++;
-  if (document.getElementById('client-nom').value.trim()) score++;
+  if (document.getElementById('client-nom').value.trim() && document.getElementById('client-prenom').value.trim()) score++;
   if (document.getElementById('client-rue').value.trim()) score++;
   if (document.getElementById('montant-ht').value) score++;
   document.getElementById('progress').style.width = (score/5*100) + '%';
@@ -380,7 +439,9 @@ function collectData() {
   const prestations = [];
   document.querySelectorAll('.prest-item.checked').forEach(item => {
     const label = item.querySelector('.prest-label').childNodes[0].textContent.trim();
-    prestations.push(label);
+    if (item.dataset.id === 'remise' && state.lessivage) {
+      prestations.push(label + ' (avec lessivage des murs)');
+    } else { prestations.push(label); }
   });
   const supp = document.getElementById('prest-supp').value.trim();
   if (supp) prestations.push('Prestations supp. : ' + supp);
@@ -415,42 +476,92 @@ function collectData() {
     dateInterv: dateStr,
     notes: document.getElementById('notes').value.trim(),
     acompteMontant: document.getElementById('acompte-montant').value || '—',
+    acompteReg: state.acompteReg,
     soldeRestant: document.getElementById('solde-restant').value || '—',
   };
 }
 
 function validate(d) {
-  if (!d.nom) { showToast('⚠️ Merci d\'indiquer le nom du client'); return false; }
-  if (!document.getElementById('client-rue').value.trim()) { showToast('⚠️ Merci d\'indiquer l\'adresse'); return false; }
-  if (!d.tel) { showToast('⚠️ Merci d\'indiquer le téléphone'); return false; }
+  if (!d.nom) { showToast("⚠️ Merci d'indiquer le nom du client"); return false; }
+  if (!document.getElementById('client-rue').value.trim()) { showToast("⚠️ Merci d'indiquer l'adresse du site"); return false; }
+  if (!d.tel) { showToast("⚠️ Merci d'indiquer le téléphone"); return false; }
   if (d.prestations.length === 0) { showToast('⚠️ Sélectionner au moins une prestation'); return false; }
-  if (!document.getElementById('montant-ht').value) { showToast('⚠️ Merci d\'indiquer le montant HT'); return false; }
+  if (!document.getElementById('montant-ht').value) { showToast("⚠️ Merci d'indiquer le montant HT"); return false; }
   return true;
+}
+
+// AUTOCOMPLETE ADRESSE
+let autocompleteTimeout = null;
+function autocompleteAdresse(val) {
+  clearTimeout(autocompleteTimeout);
+  const list = document.getElementById('autocomplete-list');
+  if (!val || val.length < 4) { list.style.display = 'none'; return; }
+  autocompleteTimeout = setTimeout(() => {
+    fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=fr&limit=5&q=' + encodeURIComponent(val))
+      .then(r => r.json())
+      .then(results => {
+        if (!results.length) { list.style.display = 'none'; return; }
+        list.innerHTML = '';
+        results.forEach(r => {
+          const addr = r.address;
+          const rue = (addr.house_number ? addr.house_number + ' ' : '') + (addr.road || '');
+          const cp = addr.postcode || '';
+          const ville = addr.city || addr.town || addr.village || addr.municipality || '';
+          const display = r.display_name.split(',').slice(0,3).join(',');
+          const item = document.createElement('div');
+          item.style.cssText = 'padding:10px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid #D1D9E6;';
+          item.textContent = display;
+          item.onmouseover = () => item.style.background = '#EBF2FC';
+          item.onmouseout = () => item.style.background = '';
+          item.onclick = () => {
+            document.getElementById('client-rue').value = rue || val;
+            document.getElementById('client-cp').value = cp;
+            document.getElementById('client-ville').value = ville;
+            list.style.display = 'none';
+            updateProgress();
+          };
+          list.appendChild(item);
+        });
+        list.style.display = 'block';
+      }).catch(() => list.style.display = 'none');
+  }, 400);
+}
+document.addEventListener('click', e => {
+  const list = document.getElementById('autocomplete-list');
+  if (list && !list.contains(e.target) && e.target.id !== 'client-rue') list.style.display = 'none';
+});
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
 }
 
 function sendEmail() {
   const d = collectData();
   if (!validate(d)) return;
   const subject = encodeURIComponent('[Devis ' + d.num + '] ' + d.nom + ' – ' + d.client + ' ' + d.mission);
-  const body = encodeURIComponent('DEVIS ' + d.num + ' – Starsnett Services\nClient: ' + d.prenom + ' ' + d.nom + '\nAdresse: ' + d.adresse + '\nTél: ' + d.tel + '\nPrestations:\n' + d.prestations.map(p => '• ' + p).join('\n') + '\n\nHT: ' + d.ht + ' €  TTC: ' + d.ttc + ' €\nDate: ' + d.dateInterv);
+  const body = encodeURIComponent('DEVIS ' + d.num + ' – Starsnett Services\nÉtabli le : ' + d.date + '  |  Commercial : ' + (d.commercial||'—') + '\n\nCLIENT\nNom : ' + d.prenom + ' ' + d.nom + (d.societe?'\nSociété : '+d.societe:'') + '\nAdresse : ' + d.adresse + '\nTél : ' + d.tel + '\nEmail : ' + (d.email||'—') + '\n\nPRESTATIONS\n' + d.prestations.map(p=>'✓ '+p).join('\n') + '\n\nTARIFICATION\nHT : ' + d.ht + ' €\nTVA (20%) : ' + d.tva + ' €\nTOTAL TTC : ' + d.ttc + ' €\nRèglement : ' + (d.reglement||'—') + '\n\nDate intervention : ' + (d.dateInterv||'—') + '\n\nDevis ferme, à caractère forfaitaire.\n50% à la signature – Solde juste après la prestation.');
   window.location.href = 'mailto:starsnettinfo@gmail.com?subject=' + subject + '&body=' + body;
-  showToast('✉️ Email en cours d\'ouverture…');
+  showToast("✉️ Email en cours d'ouverture…");
 }
 
 function sendCopyToClient() {
   const d = collectData();
   if (!validate(d)) return;
-  if (!d.email) { showToast('⚠️ Renseignez l\'email du client'); return; }
+  if (!d.email) { showToast("⚠️ Renseignez l'email du client"); return; }
+  const rib = d.reglement === 'Virement' ? '\n\nCoordonnées bancaires :\nIBAN : FR76 3000 4029 5400 0100 5863 495\nBIC : BNPAFRPPXXX\nTitulaire : SARL Starsnett Services' : '';
   const subject = encodeURIComponent('Votre devis Starsnett Services N°' + d.num);
-  const body = encodeURIComponent('Bonjour ' + d.prenom + ' ' + d.nom + ',\n\nVoici le récapitulatif de votre devis N°' + d.num + '\n\nAdresse: ' + d.adresse + '\n\nPrestations:\n' + d.prestations.map(p => '• ' + p).join('\n') + '\n\nTotal TTC: ' + d.ttc + ' €\n\nCordialement,\n' + (d.commercial || 'Starsnett Services') + '\n01 43 77 58 69');
+  const body = encodeURIComponent('Bonjour ' + d.prenom + ' ' + d.nom + ',\n\nVoici le récapitulatif de votre devis N°' + d.num + '\n\nAdresse : ' + d.adresse + '\nType : ' + (d.client||'—') + ' / ' + (d.mission||'—') + '\n\nPRESTATIONS :\n' + d.prestations.map(p=>'• '+p).join('\n') + '\n\nMontant HT : ' + d.ht + ' €\nTVA (20%) : ' + d.tva + ' €\nTOTAL TTC : ' + d.ttc + ' €\nRèglement : ' + (d.reglement||'—') + rib + '\n\nDate d\'intervention : ' + (d.dateInterv||'—') + '\n\nDevis ferme, à caractère forfaitaire.\n50% à la signature, solde juste après la prestation.\n\nCordialement,\n' + (d.commercial||'Starsnett Services') + '\n📞 01 43 77 58 69\ncontact@starsnett-services.com');
   window.location.href = 'mailto:' + d.email + '?subject=' + subject + '&body=' + body;
-  showToast('📨 Email client en cours d\'ouverture…');
+  showToast("📨 Email client en cours d'ouverture…");
 }
 
 function sendWhatsApp() {
   const d = collectData();
   if (!validate(d)) return;
-  const msg = encodeURIComponent('*DEVIS ' + d.num + ' – Starsnett*\n📅 ' + d.date + ' | 👔 ' + (d.commercial || '—') + '\n\n*CLIENT*\n' + d.prenom + ' ' + d.nom + (d.societe ? ' – ' + d.societe : '') + '\n📍 ' + d.adresse + '\n📞 ' + d.tel + '\n\n*PRESTATIONS*\n' + d.prestations.map(p => '✅ ' + p).join('\n') + '\n\n*TARIF*\nHT : ' + d.ht + ' € | TVA : ' + d.tva + ' € | *TTC : ' + d.ttc + ' €*\n\n📆 ' + (d.dateInterv || '—'));
+  const msg = encodeURIComponent('*DEVIS ' + d.num + ' – Starsnett*\n📅 ' + d.date + ' | 👔 ' + (d.commercial||'—') + '\n\n*CLIENT*\n' + d.prenom + ' ' + d.nom + (d.societe?' – '+d.societe:'') + '\n📍 ' + d.adresse + '\n📞 ' + d.tel + '\n\n*PRESTATIONS*\n' + d.prestations.map(p=>'✅ '+p).join('\n') + '\n\n*TARIF*\nHT : ' + d.ht + ' € | TVA : ' + d.tva + ' € | *TTC : ' + d.ttc + ' €*\nRèglement : ' + (d.reglement||'—') + '\n\n📆 ' + (d.dateInterv||'—') + (d.notes?'\n📝 '+d.notes:'') + '\n\n_Devis ferme, à caractère forfaitaire._');
   window.open('https://wa.me/?text=' + msg, '_blank');
   showToast('💬 WhatsApp ouvert…');
 }
@@ -463,143 +574,160 @@ async function generatePDF() {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W = 210, margin = 15, contentW = W - margin * 2;
   let y = 15;
-  const blue = [27, 79, 138]; const yellow = [245, 196, 0]; const grey = [247, 248, 250]; const muted = [107, 122, 153];
+  const blue = [27,79,138], yellow = [245,196,0], grey = [247,248,250], muted = [107,122,153];
   doc.setFillColor(...blue); doc.rect(0, 0, W, 38, 'F');
-  doc.setTextColor(...yellow); doc.setFontSize(20); doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...yellow); doc.setFontSize(20); doc.setFont('helvetica','bold');
   doc.text('Starsnett', margin, 16);
-  doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica', 'normal');
-  doc.text('Services', margin + 43, 16);
+  doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','normal');
+  doc.text('Services', margin+43, 16);
   doc.setFontSize(8); doc.setTextColor(200,220,255);
   doc.text('83, rue de Reuilly – 75012 Paris  |  01 43 77 58 69  |  contact@starsnett-services.com', margin, 26);
   doc.text('SARL – SIRET : 523 021 665 00022 – NAF : 8122Z', margin, 31);
-  doc.setTextColor(...yellow); doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-  doc.text('DEVIS N° ' + d.num, W - margin, 16, { align: 'right' });
-  doc.setTextColor(200,220,255); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-  doc.text(d.date, W - margin, 22, { align: 'right' });
+  doc.setTextColor(...yellow); doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.text('DEVIS N° ' + d.num, W-margin, 16, {align:'right'});
+  doc.setTextColor(200,220,255); doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text(d.date, W-margin, 22, {align:'right'});
+  doc.text((d.client||'') + ' / ' + (d.mission||''), W-margin, 28, {align:'right'});
   y = 46;
   doc.setFillColor(...blue); doc.rect(margin, y, contentW, 7, 'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-  doc.text('CLIENT', margin + 3, y + 5); y += 10;
-  doc.setFillColor(...grey); doc.rect(margin, y, contentW, 22, 'F');
-  doc.setDrawColor(209,217,230); doc.rect(margin, y, contentW, 22, 'S');
-  doc.setTextColor(0,0,0); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-  doc.text('Nom :', margin+3, y+6); doc.setFont('helvetica', 'normal'); doc.text((d.prenom + ' ' + d.nom + (d.societe ? ' – ' + d.societe : '')).trim(), margin+25, y+6);
-  doc.setFont('helvetica', 'bold'); doc.text('Adresse :', margin+3, y+12); doc.setFont('helvetica', 'normal'); doc.text(d.adresse||'—', margin+25, y+12);
-  doc.setFont('helvetica', 'bold'); doc.text('Tél :', margin+3, y+18); doc.setFont('helvetica', 'normal'); doc.text(d.tel||'—', margin+25, y+18);
-  y += 27;
+  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+  doc.text('CLIENT', margin+3, y+5); y += 10;
+  doc.setFillColor(...grey); doc.rect(margin, y, contentW, 28, 'F');
+  doc.setDrawColor(209,217,230); doc.rect(margin, y, contentW, 28, 'S');
+  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('Nom / Société :', margin+3, y+6); doc.setFont('helvetica','normal'); doc.text((d.prenom+' '+d.nom+(d.societe?' – '+d.societe:'')).trim(), margin+35, y+6);
+  doc.setFont('helvetica','bold'); doc.text('Adresse :', margin+3, y+12); doc.setFont('helvetica','normal'); doc.text(d.adresse||'—', margin+35, y+12);
+  doc.setFont('helvetica','bold'); doc.text('Téléphone :', margin+3, y+18); doc.setFont('helvetica','normal'); doc.text(d.tel||'—', margin+35, y+18);
+  doc.setFont('helvetica','bold'); doc.text('Email :', margin+3, y+24); doc.setFont('helvetica','normal'); doc.text(d.email||'—', margin+35, y+24);
+  y += 33;
   doc.setFillColor(...blue); doc.rect(margin, y, contentW, 7, 'F');
-  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
   doc.text('PRESTATIONS', margin+3, y+5); y += 10;
-  d.prestations.forEach((p, i) => {
+  d.prestations.forEach((p,i) => {
     if (y > 250) { doc.addPage(); y = 20; }
     doc.setFillColor(i%2===0?247:255, i%2===0?248:255, i%2===0?250:255);
     doc.rect(margin, y, contentW, 7, 'F');
     doc.setDrawColor(209,217,230); doc.rect(margin, y, contentW, 7, 'S');
     doc.setFillColor(...blue); doc.rect(margin+2, y+1.5, 4, 4, 'F');
     doc.setTextColor(255,255,255); doc.setFontSize(7); doc.text('✓', margin+2.8, y+5);
-    doc.setTextColor(0,0,0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
     doc.text(p, margin+9, y+5); y += 7;
   });
   y += 5;
   if (y > 220) { doc.addPage(); y = 20; }
   doc.setFillColor(...blue); doc.rect(margin, y, contentW, 7, 'F');
-  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
   doc.text('TARIFICATION', margin+3, y+5); y += 10;
   const col1 = contentW*0.6, col2 = contentW*0.4;
   doc.setFillColor(...grey); doc.rect(margin, y, col1, 8, 'F'); doc.rect(margin+col1, y, col2, 8, 'F');
   doc.setDrawColor(209,217,230); doc.rect(margin, y, col1, 8, 'S'); doc.rect(margin+col1, y, col2, 8, 'S');
-  doc.setTextColor(0,0,0); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-  doc.text('Montant HT', margin+3, y+5.5); doc.setFont('helvetica', 'normal'); doc.text((d.ht||'—')+' €', margin+col1+3, y+5.5); y += 8;
+  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('Montant HT', margin+3, y+5.5); doc.setFont('helvetica','normal'); doc.text((d.ht||'—')+' €', margin+col1+3, y+5.5); y += 8;
   doc.setFillColor(255,255,255); doc.rect(margin, y, col1, 8, 'F'); doc.rect(margin+col1, y, col2, 8, 'F');
   doc.rect(margin, y, col1, 8, 'S'); doc.rect(margin+col1, y, col2, 8, 'S');
-  doc.setFont('helvetica', 'bold'); doc.text('TVA (20%)', margin+3, y+5.5); doc.setFont('helvetica', 'normal'); doc.text((d.tva||'—')+' €', margin+col1+3, y+5.5); y += 8;
+  doc.setFont('helvetica','bold'); doc.text('TVA (20%)', margin+3, y+5.5); doc.setFont('helvetica','normal'); doc.text((d.tva||'—')+' €', margin+col1+3, y+5.5); y += 8;
   doc.setFillColor(...blue); doc.rect(margin, y, contentW, 10, 'F');
-  doc.setTextColor(...yellow); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+  doc.setTextColor(...yellow); doc.setFont('helvetica','bold'); doc.setFontSize(11);
   doc.text('TOTAL TTC', margin+3, y+7); doc.text((d.ttc||'—')+' €', W-margin-3, y+7, {align:'right'}); y += 14;
-  doc.setTextColor(0,0,0); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-  doc.text('Mode de règlement : ', margin, y); doc.setFont('helvetica', 'normal'); doc.text(d.reglement||'—', margin+42, y); y += 10;
-  if (d.dateInterv) { doc.setFont('helvetica', 'bold'); doc.text('Date d\'intervention : ', margin, y); doc.setFont('helvetica', 'normal'); doc.text(d.dateInterv, margin+42, y); y += 8; }
-  doc.setTextColor(...muted); doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5);
-  doc.text('Devis ferme, à caractère forfaitaire. 50% à la signature – Solde juste après la prestation.', W/2, y+6, {align:'center'}); y += 14;
+  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('Mode de règlement : ', margin, y); doc.setFont('helvetica','normal'); doc.text(d.reglement||'—', margin+42, y); y += 6;
+  if (d.reglement === 'Virement') {
+    doc.setFillColor(235,242,252); doc.rect(margin, y, contentW, 18, 'F');
+    doc.setDrawColor(...blue); doc.setLineWidth(0.5); doc.rect(margin, y, contentW, 18, 'S');
+    doc.setTextColor(...blue); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+    doc.text('Coordonnées bancaires - BNP Paribas', margin+3, y+5);
+    doc.setFont('helvetica','normal'); doc.setTextColor(0,0,0);
+    doc.text('Titulaire : SARL Starsnett Services', margin+3, y+10);
+    doc.text('IBAN : FR76 3000 4029 5400 0100 5863 495', margin+3, y+15);
+    y += 22;
+  }
+  y += 5;
+  if (d.dateInterv) { doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text("Date d'intervention : ", margin, y); doc.setFont('helvetica','normal'); doc.text(d.dateInterv, margin+42, y); y += 8; }
+  if (y > 240) { doc.addPage(); y = 20; }
+  doc.setTextColor(...muted); doc.setFont('helvetica','italic'); doc.setFontSize(7.5);
+  doc.text("Starsnett services intervient en l'état. Décharge de responsabilité pour tout dommage non imputable à nos services.", margin, y, {maxWidth:contentW}); y += 8;
+  doc.setFont('helvetica','bold'); doc.setTextColor(...blue); doc.setFontSize(9);
+  doc.text('Devis ferme, à caractère forfaitaire.', W/2, y, {align:'center'}); y += 10;
   if (y > 230) { doc.addPage(); y = 20; }
   const hw = (contentW-5)/2;
-  doc.setDrawColor(...blue); doc.setLineWidth(0.5);
-  doc.setFillColor(...grey); doc.rect(margin, y, hw, 7, 'F'); doc.rect(margin, y, hw, 7, 'S');
-  doc.setTextColor(0,0,0); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+  doc.setFillColor(...grey); doc.setDrawColor(...blue); doc.setLineWidth(0.5);
+  doc.rect(margin, y, hw, 7, 'F'); doc.rect(margin, y, hw, 7, 'S');
+  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
   doc.text('Bon pour accord le :', margin+3, y+5);
   doc.rect(margin, y+7, hw, 25, 'S');
   doc.setFillColor(...grey); doc.rect(margin+hw+5, y, hw, 7, 'F'); doc.rect(margin+hw+5, y, hw, 7, 'S');
-  doc.text('Tampon et signature client :', margin+hw+8, y+5);
+  doc.text('Tampon et signature du client :', margin+hw+8, y+5);
   doc.rect(margin+hw+5, y+7, hw, 25, 'S');
   doc.setFillColor(...blue); doc.rect(0, 287, W, 10, 'F');
-  doc.setTextColor(200,220,255); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+  doc.setTextColor(200,220,255); doc.setFont('helvetica','normal'); doc.setFontSize(7);
   doc.text('Tél : 01 43 77 58 69  –  contact@starsnett-services.com  –  83, Rue de Reuilly, 75012 Paris  –  SIRET : 523 021 665 00022', W/2, 293, {align:'center'});
   doc.save('Devis_' + d.num + '_' + (d.nom||'client').replace(/[^a-zA-Z0-9]/g,'_') + '.pdf');
   showToast('✅ PDF téléchargé !');
 }
 
 async function generateBonIntervention() {
-  showToast('⏳ Génération du bon...');
   const d = collectData();
   if (!validate(d)) return;
+  showToast("⏳ Génération du bon d'intervention...");
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W = 210, margin = 15, CW = W - margin * 2;
   let y = 15;
   const blue = [27,79,138], teal = [15,118,110], yellow = [245,196,0], grey = [247,248,250];
   doc.setFillColor(...blue); doc.rect(0, 0, W, 36, 'F');
-  doc.setTextColor(...yellow); doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...yellow); doc.setFontSize(18); doc.setFont('helvetica','bold');
   doc.text('Starsnett Services', margin, 14);
-  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','normal');
   doc.text('83, rue de Reuilly – 75012 Paris  |  01 43 77 58 69', margin, 21);
   doc.setFillColor(...teal); doc.roundedRect(W-margin-70, 8, 70, 20, 2, 2, 'F');
-  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(11);
   doc.text("BON D'INTERVENTION", W-margin-35, 17, {align:'center'});
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.text('N° ' + d.num, W-margin-35, 24, {align:'center'});
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text('N° ' + d.num, W-margin-35, 24, {align:'center'});
   y = 44;
   doc.setFillColor(...teal); doc.rect(margin, y, CW, 7, 'F');
-  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-  doc.text('CLIENT & ADRESSE', margin+3, y+5); y += 10;
-  doc.setFillColor(...grey); doc.rect(margin, y, CW, 28, 'F');
-  doc.setDrawColor(200,220,220); doc.rect(margin, y, CW, 28, 'S');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('CLIENT & ADRESSE DU SITE', margin+3, y+5); y += 10;
+  doc.setFillColor(...grey); doc.rect(margin, y, CW, 30, 'F');
+  doc.setDrawColor(200,220,220); doc.rect(margin, y, CW, 30, 'S');
   doc.setTextColor(0,0,0);
-  [['Client', d.prenom+' '+d.nom+(d.societe?' – '+d.societe:'')],['Tél', d.tel||'—'],['Adresse', d.adresse||'—'],['Digicode', d.digicode||'—'],['Sonnette', d.nomSonnette||'—']].forEach((r,i) => {
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text(r[0]+' :', margin+3, y+7+i*5);
-    doc.setFont('helvetica', 'normal'); doc.text(r[1], margin+26, y+7+i*5);
+  [['Client', d.prenom+' '+d.nom+(d.societe?' – '+d.societe:'')],['Téléphone', d.tel||'—'],['Adresse', d.adresse||'—'],['Digicode', d.digicode||'—'],['Sonnette', d.nomSonnette||'—']].forEach((r,i) => {
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.text(r[0]+' :', margin+3, y+7+i*5);
+    doc.setFont('helvetica','normal'); doc.text(r[1], margin+26, y+7+i*5);
   });
-  y += 33;
+  y += 35;
   doc.setFillColor(...teal); doc.rect(margin, y, CW, 7, 'F');
-  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-  doc.text('PRESTATIONS À RÉALISER', margin+3, y+5); y += 10;
-  d.prestations.forEach((p, i) => {
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('PRESTATIONS À RÉALISER  (cocher une fois effectuée)', margin+3, y+5); y += 10;
+  d.prestations.forEach((p,i) => {
     if (y > 240) { doc.addPage(); y = 20; }
     doc.setFillColor(i%2===0?247:255, i%2===0?248:255, i%2===0?250:255);
     doc.rect(margin, y, CW, 8, 'F');
     doc.setDrawColor(200,220,220); doc.rect(margin, y, CW, 8, 'S');
     doc.setDrawColor(...teal); doc.setLineWidth(0.8); doc.rect(margin+2, y+1.5, 5, 5, 'S');
-    doc.setTextColor(0,0,0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
     doc.text(p, margin+10, y+5.5); y += 8;
   });
-  y += 8;
+  y += 10;
   if (y > 220) { doc.addPage(); y = 20; }
   doc.setFillColor(...teal); doc.rect(margin, y, CW, 7, 'F');
-  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-  doc.text('OBSERVATIONS', margin+3, y+5); y += 10;
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('OBSERVATIONS / INSTRUCTIONS', margin+3, y+5); y += 10;
   doc.setDrawColor(...teal); doc.rect(margin, y, CW, 20, 'S');
-  if (d.notes) { doc.setTextColor(0,0,0); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.text(d.notes, margin+3, y+6, {maxWidth:CW-6}); }
+  if (d.notes) { doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.text(d.notes, margin+3, y+6, {maxWidth:CW-6}); }
   y += 25;
   if (y > 230) { doc.addPage(); y = 20; }
   const hw = (CW-5)/2;
-  doc.setFillColor(...grey); doc.rect(margin, y, hw, 8, 'F'); doc.rect(margin, y, hw, 8, 'S');
-  doc.setTextColor(0,0,0); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
-  doc.text('Nom de l\'agent :', margin+3, y+5.5); doc.rect(margin, y+8, hw, 22, 'S');
+  doc.setFillColor(...grey); doc.setDrawColor(...teal);
+  doc.rect(margin, y, hw, 8, 'F'); doc.rect(margin, y, hw, 8, 'S');
+  doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+  doc.text("Nom de l'agent :", margin+3, y+5.5); doc.rect(margin, y+8, hw, 22, 'S');
   doc.setFillColor(...grey); doc.rect(margin+hw+5, y, hw, 8, 'F'); doc.rect(margin+hw+5, y, hw, 8, 'S');
   doc.text('Signature client :', margin+hw+8, y+5.5); doc.rect(margin+hw+5, y+8, hw, 22, 'S');
   doc.setFillColor(...teal); doc.rect(0, 287, W, 10, 'F');
-  doc.setTextColor(200,240,235); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
-  doc.text('Starsnett Services – 01 43 77 58 69 – starsnettinfo@gmail.com', W/2, 293, {align:'center'});
+  doc.setTextColor(200,240,235); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+  doc.text('Starsnett Services – 01 43 77 58 69 – starsnettinfo@gmail.com – Document à conserver sur le site', W/2, 293, {align:'center'});
   doc.save('Bon_Intervention_' + d.num + '_' + (d.nom||'client').replace(/[^a-zA-Z0-9]/g,'_') + '.pdf');
-  showToast('✅ Bon d\'intervention téléchargé !');
+  showToast("✅ Bon d'intervention téléchargé !");
 }
 
 function showToast(msg) {
@@ -614,17 +742,12 @@ function resetForm() {
   document.querySelectorAll('.prest-item').forEach(b => b.classList.remove('checked'));
   document.querySelectorAll('.reg-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('input, textarea').forEach(el => el.value = '');
-  state.client=''; state.mission=''; state.commercial=''; state.reglement=''; state.lessivage=false; state.logement='';
+  state.client=''; state.mission=''; state.commercial=''; state.reglement=''; state.lessivage=false; state.logement=''; state.acompteReg='';
   document.getElementById('lessivage-sub').classList.remove('visible');
+  document.getElementById('rib-box').style.display = 'none';
+  document.getElementById('sumup-box').style.display = 'none';
   calcTTC(); init();
   showToast('🗑️ Formulaire réinitialisé');
-}
-
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  btn.classList.add('active');
 }
 
 init();

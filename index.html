@@ -458,9 +458,10 @@
 
 <!-- SEND BAR -->
 <div class="send-section" style="flex-wrap:wrap;gap:8px;">
-  <button class="btn" style="background:#6D28D9;color:white;flex:1;min-width:140px;" onclick="generatePDF()">📄 Générer PDF</button>
-  <button class="btn btn-email" onclick="sendEmail()" style="flex:1;min-width:140px;">✉️ Envoyer à Starsnett</button>
-  <button class="btn" style="background:#0EA5E9;color:white;flex:1;min-width:140px;" onclick="sendCopyToClient()">📨 Copie au client</button>
+  <button class="btn" style="background:#6D28D9;color:white;flex:1;min-width:130px;" onclick="generatePDF()">📄 Devis PDF</button>
+  <button class="btn" style="background:#0F766E;color:white;flex:1;min-width:130px;" onclick="generateBonIntervention()">📋 Bon d'intervention</button>
+  <button class="btn btn-email" onclick="sendEmail()" style="flex:1;min-width:130px;">✉️ Envoyer à Starsnett</button>
+  <button class="btn" style="background:#0EA5E9;color:white;flex:1;min-width:130px;" onclick="sendCopyToClient()">📨 Copie au client</button>
   <button class="btn btn-whatsapp" style="flex:1;min-width:140px;" onclick="sendWhatsApp()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
     Envoyer via WhatsApp
@@ -1010,6 +1011,267 @@ async function generatePDF() {
   const filename = 'Devis_' + d.num + '_' + (d.nom || 'client').replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
   doc.save(filename);
   showToast('✅ PDF téléchargé : ' + filename);
+}
+
+// ── MATÉRIEL PAR PRESTATION ───────────────────────────────────────────
+function getMateriel(prestations) {
+  const materiel = new Set([
+    'Aspirateur',
+    'Serpillière + seau',
+    'Produit multi-surfaces',
+    'Microfibres (x5)',
+    'Gants jetables',
+    'Sacs poubelle'
+  ]);
+
+  const rules = {
+    'sols': ['Balai brosse', 'Produit sol', 'Monobrosse si disponible'],
+    'vitres': ['Raclette vitre', 'Produit vitres', 'Perche télescopique', 'Peau de chamois'],
+    'baies vitrées': ['Raclette vitre', 'Produit vitres', 'Perche télescopique'],
+    'cuisine': ['Dégraissant', 'Éponges abrasives', 'Crème récurante', 'Grattoir'],
+    'sanitaires': ['Détartrant', 'Brosse WC', 'Désinfectant', 'Spray salle de bain'],
+    'shampouinage': ['Machine shampouineuse', 'Produit moquette', 'Brosse rotative'],
+    'lessivage': ['Éponges grandes', 'Lessive murale', 'Bâche de protection', 'Escabeau'],
+    'murs': ['Éponges grandes', 'Lessive murale', 'Bâche de protection'],
+    'balcons': ['Balai brosse extérieur', 'Kärcher', 'Produit terrasse'],
+    'terrasses': ['Balai brosse extérieur', 'Kärcher', 'Produit terrasse'],
+    'débarras': ['Sacs poubelle XXL (x20)', 'Chariot', 'Gants renforcés'],
+    'encombrants': ['Sacs poubelle XXL (x20)', 'Chariot', 'Gants renforcés'],
+    'chantier': ['Kärcher', 'Sacs gravats', 'Balai chantier', 'Gants renforcés'],
+    'karcher': ['Kärcher'],
+    'parties communes': ['Kärcher', 'Balai brosse', 'Produit sol'],
+    'immeuble': ['Kärcher', 'Balai brosse', 'Produit sol'],
+    'copropriété': ['Balai brosse', 'Produit sol commun'],
+    'parking': ['Kärcher', 'Balai brosse', 'Produit sol industriel'],
+    'sinistre': ['Kärcher', 'Aspirateur eau', 'Déshumidificateur si dispo', 'Masques FFP2'],
+    'incendie': ['Masques FFP2', 'Combinaisons jetables', 'Produit anti-suie', 'Kärcher'],
+    'insalubre': ['Combinaisons jetables', 'Masques FFP2', 'Désinfectant puissant', 'Sacs XXL (x30)'],
+    'diogène': ['Combinaisons jetables', 'Masques FFP2', 'Désinfectant puissant', 'Sacs XXL (x30)', 'Gants renforcés'],
+    'médical': ['Désinfectant hospitalier', 'Sur-chaussures', 'Masques chirurgicaux', 'Gants nitrile', 'Lingettes désinfectantes'],
+    'dentaire': ['Désinfectant hospitalier', 'Sur-chaussures', 'Masques chirurgicaux', 'Gants nitrile'],
+    'kiné': ['Désinfectant hospitalier', 'Sur-chaussures', 'Lingettes désinfectantes'],
+    'infirmier': ['Désinfectant hospitalier', 'Sur-chaussures', 'Masques chirurgicaux'],
+    'ehpad': ['Désinfectant hospitalier', 'Sur-chaussures', 'Masques chirurgicaux', 'Gants nitrile'],
+    'crèche': ['Désinfectant doux non toxique', 'Sur-chaussures', 'Lingettes bébé-safe'],
+    'cuisine pro': ['Dégraissant puissant', 'Grattoir inox', 'Kärcher', 'Protection four', 'Éponges abrasives XXL'],
+    'restaurant': ['Dégraissant puissant', 'Grattoir inox', 'Kärcher', 'Désinfectant alimentaire'],
+    'boulangerie': ['Dégraissant four', 'Grattoir inox', 'Produit alimentaire', 'Kärcher'],
+    'boucherie': ['Dégraissant puissant', 'Désinfectant alimentaire', 'Kärcher', 'Grattoir inox'],
+    'labo': ['Désinfectant alimentaire', 'Combinaison jetable', 'Sur-chaussures', 'Kärcher'],
+    'entrepôt': ['Kärcher', 'Balai brosse industriel', 'Monobrosse', 'Produit sol industriel'],
+    'industriel': ['Kärcher', 'Balai brosse industriel', 'Monobrosse', 'Produit sol industriel'],
+    'sport': ['Désinfectant sol', 'Monobrosse', 'Produit vestiaire', 'Désodorisant'],
+    'danse': ['Produit parquet', 'Serpillière douce', 'Aspirateur'],
+    'moquette': ['Machine shampouineuse', 'Produit moquette', 'Brosse rotative'],
+  };
+
+  prestations.forEach(p => {
+    const pl = p.toLowerCase();
+    Object.keys(rules).forEach(key => {
+      if (pl.includes(key)) {
+        rules[key].forEach(m => materiel.add(m));
+      }
+    });
+  });
+
+  return [...materiel];
+}
+
+// ── BON D'INTERVENTION PDF ─────────────────────────────────────────────
+async function generateBonIntervention() {
+  const d = collectData();
+  if (!validate(d)) return;
+  showToast('⏳ Génération du bon d'intervention...');
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, margin = 15, CW = W - margin * 2;
+  let y = 15;
+  const blue = [27, 79, 138];
+  const teal = [15, 118, 110];
+  const yellow = [245, 196, 0];
+  const grey = [247, 248, 250];
+  const white = [255, 255, 255];
+
+  // ── HEADER
+  doc.setFillColor(...blue);
+  doc.rect(0, 0, W, 36, 'F');
+  doc.setTextColor(...yellow); doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.text('Starsnett Services', margin, 14);
+  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+  doc.text('83, rue de Reuilly – 75012 Paris  |  01 43 77 58 69', margin, 21);
+
+  // Badge BON D'INTERVENTION
+  doc.setFillColor(...teal);
+  doc.roundedRect(W - margin - 70, 8, 70, 20, 2, 2, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+  doc.text("BON D'INTERVENTION", W - margin - 35, 17, { align: 'center' });
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text('N° ' + d.num, W - margin - 35, 24, { align: 'center' });
+
+  y = 44;
+
+  // ── INFO INTERVENTION
+  doc.setFillColor(...teal); doc.rect(margin, y, CW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('INFORMATIONS INTERVENTION', margin + 3, y + 5); y += 10;
+
+  doc.setFillColor(...grey); doc.rect(margin, y, CW, 32, 'F');
+  doc.setDrawColor(200,220,220); doc.rect(margin, y, CW, 32, 'S');
+  doc.setTextColor(0,0,0);
+
+  const col = CW / 2;
+  const infos = [
+    ['Date', d.dateInterv || '________________'],
+    ['Commercial', d.commercial || '________________'],
+    ['Type', (d.client||'') + ' / ' + (d.mission||'')],
+    ['Logement', d.logement || '________________'],
+  ];
+  infos.forEach((r, i) => {
+    const x = i % 2 === 0 ? margin + 3 : margin + col + 3;
+    const row = Math.floor(i / 2);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+    doc.text(r[0] + ' :', x, y + 7 + row * 12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(r[1], x + 22, y + 7 + row * 12);
+  });
+  y += 37;
+
+  // ── CLIENT & SITE
+  doc.setFillColor(...teal); doc.rect(margin, y, CW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('CLIENT & ADRESSE DU SITE', margin + 3, y + 5); y += 10;
+
+  doc.setFillColor(...grey); doc.rect(margin, y, CW, 30, 'F');
+  doc.setDrawColor(200,220,220); doc.rect(margin, y, CW, 30, 'S');
+  doc.setTextColor(0,0,0);
+
+  const clientInfos = [
+    ['Client', (d.prenom||'') + ' ' + (d.nom||'') + (d.societe ? ' – ' + d.societe : '')],
+    ['Téléphone', d.tel || '—'],
+    ['Adresse', d.adresse || '—'],
+    ['Digicode', d.digicode || '—'],
+    ['Sonnette', d.nomSonnette || '—'],
+  ];
+  clientInfos.forEach((r, i) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+    doc.text(r[0] + ' :', margin + 3, y + 7 + i * 5);
+    doc.setFont('helvetica', 'normal');
+    doc.text(r[1], margin + 26, y + 7 + i * 5);
+  });
+  if (d.acces) {
+    doc.setFont('helvetica', 'bold'); doc.text('Accès :', margin + 3, y + 32);
+    doc.setFont('helvetica', 'normal'); doc.text(d.acces, margin + 20, y + 32);
+  }
+  y += 36;
+
+  // ── PRESTATIONS À RÉALISER
+  doc.setFillColor(...teal); doc.rect(margin, y, CW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('PRESTATIONS À RÉALISER  (cocher une fois effectuée)', margin + 3, y + 5); y += 10;
+
+  if (d.prestations.length === 0) {
+    doc.setTextColor(150,150,150); doc.setFont('helvetica', 'italic'); doc.setFontSize(9);
+    doc.text('Aucune prestation sélectionnée', margin + 3, y + 6); y += 12;
+  } else {
+    d.prestations.forEach((p, i) => {
+      if (y > 240) { doc.addPage(); y = 20; }
+      doc.setFillColor(i%2===0 ? 247 : 255, i%2===0 ? 248 : 255, i%2===0 ? 250 : 255);
+      doc.rect(margin, y, CW, 8, 'F');
+      doc.setDrawColor(200,220,220); doc.rect(margin, y, CW, 8, 'S');
+      // Checkbox vide pour l'agent
+      doc.setDrawColor(...teal); doc.setLineWidth(0.8);
+      doc.rect(margin + 2, y + 1.5, 5, 5, 'S');
+      doc.setTextColor(0,0,0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(p, margin + 10, y + 5.5);
+      y += 8;
+    });
+  }
+
+  y += 6;
+
+  // ── MATÉRIEL À APPORTER
+  if (y > 200) { doc.addPage(); y = 20; }
+  doc.setFillColor(...teal); doc.rect(margin, y, CW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('MATÉRIEL À APPORTER  (cocher avant départ)', margin + 3, y + 5); y += 10;
+
+  const materiel = getMateriel(d.prestations);
+  const colW = CW / 2;
+  const rows = Math.ceil(materiel.length / 2);
+
+  for (let i = 0; i < rows; i++) {
+    if (y > 250) { doc.addPage(); y = 20; }
+    const left = materiel[i * 2];
+    const right = materiel[i * 2 + 1];
+    doc.setFillColor(i%2===0 ? 240 : 255, i%2===0 ? 253 : 255, i%2===0 ? 250 : 255);
+    doc.rect(margin, y, CW, 7, 'F');
+    doc.setDrawColor(200,220,220); doc.rect(margin, y, CW, 7, 'S');
+
+    // Left item
+    doc.setDrawColor(...teal); doc.setLineWidth(0.8);
+    doc.rect(margin + 2, y + 1.2, 4, 4, 'S');
+    doc.setTextColor(0,0,0); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    doc.text(left, margin + 8, y + 4.8);
+
+    // Right item
+    if (right) {
+      doc.rect(margin + colW + 2, y + 1.2, 4, 4, 'S');
+      doc.text(right, margin + colW + 8, y + 4.8);
+    }
+    y += 7;
+  }
+
+  y += 8;
+
+  // ── OBSERVATIONS
+  if (y > 220) { doc.addPage(); y = 20; }
+  doc.setFillColor(...teal); doc.rect(margin, y, CW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('OBSERVATIONS / INSTRUCTIONS COMMERCIALES', margin + 3, y + 5); y += 10;
+  doc.setDrawColor(...teal); doc.setLineWidth(0.5);
+  doc.rect(margin, y, CW, 20, 'S');
+  if (d.notes) {
+    doc.setTextColor(0,0,0); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    doc.text(d.notes, margin + 3, y + 6, { maxWidth: CW - 6 });
+  }
+  y += 25;
+
+  // ── SIGNATURES AGENT / CLIENT
+  if (y > 230) { doc.addPage(); y = 20; }
+  doc.setFillColor(...teal); doc.rect(margin, y, CW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('VALIDATION', margin + 3, y + 5); y += 10;
+
+  const hw = (CW - 5) / 2;
+  // Agent
+  doc.setFillColor(...grey); doc.setDrawColor(...teal);
+  doc.rect(margin, y, hw, 8, 'F'); doc.rect(margin, y, hw, 8, 'S');
+  doc.setTextColor(0,0,0); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+  doc.text("Nom de l'agent :", margin + 3, y + 5.5);
+  doc.rect(margin, y + 8, hw, 22, 'S');
+  doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); doc.setTextColor(150,150,150);
+  doc.text('Signature agent (arrivée)', margin + 3, y + 17);
+
+  // Client
+  doc.setFillColor(...grey);
+  doc.rect(margin + hw + 5, y, hw, 8, 'F'); doc.rect(margin + hw + 5, y, hw, 8, 'S');
+  doc.setTextColor(0,0,0); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+  doc.text('Signature client (travaux effectués)', margin + hw + 8, y + 5.5);
+  doc.rect(margin + hw + 5, y + 8, hw, 22, 'S');
+  doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); doc.setTextColor(150,150,150);
+  doc.text('Bon pour travaux effectués', margin + hw + 8, y + 17);
+  y += 35;
+
+  // Footer
+  doc.setFillColor(...teal); doc.rect(0, 287, W, 10, 'F');
+  doc.setTextColor(200,240,235); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+  doc.text('Starsnett Services – 01 43 77 58 69 – starsnettinfo@gmail.com – Document à conserver sur le site d'intervention', W/2, 293, { align: 'center' });
+
+  // Save
+  const filename = 'Bon_Intervention_' + d.num + '_' + (d.nom||'client').replace(/[^a-zA-Z0-9]/g,'_') + '.pdf';
+  doc.save(filename);
+  showToast('✅ Bon d'intervention téléchargé !');
 }
 
 // ── EMAIL DEVIS COMPLET ────────────────────────────────────────────────

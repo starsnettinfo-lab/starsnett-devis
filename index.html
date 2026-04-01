@@ -334,6 +334,45 @@
     </div>
   </div>
 
+  <!-- SIGNATURE ÉLECTRONIQUE -->
+  <div class="card">
+    <div class="card-header">✍️ Signature électronique client</div>
+    <div class="card-body">
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;background:var(--grey);">
+        <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Générer un lien de signature personnalisé à envoyer au client :<br><small>Le client signe depuis son propre téléphone.</small></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <button style="border:none;border-radius:10px;padding:14px 10px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:white;background:#25D366;" onclick="sendSigLink('whatsapp')">💬 Lien via WhatsApp</button>
+          <button style="border:none;border-radius:10px;padding:14px 10px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:white;background:var(--blue);" onclick="sendSigLink('email')">✉️ Lien via Email</button>
+        </div>
+        <div id="sig-link-box" style="display:none;background:white;border:1.5px solid var(--green);border-radius:10px;padding:14px;margin-top:12px;text-align:left;">
+          <p style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:8px;">✅ Lien de signature généré</p>
+          <div id="sig-link-url" style="font-size:12px;color:var(--muted);word-break:break-all;background:var(--grey);padding:8px 10px;border-radius:6px;margin-bottom:10px;"></div>
+          <button onclick="copyLink()" style="border:1.5px solid var(--border);background:var(--grey);border-radius:7px;padding:6px 14px;font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer;">📋 Copier le lien</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SIGNATURE ÉLECTRONIQUE -->
+  <div class="card">
+    <div class="card-header">✍️ Signature électronique client</div>
+    <div class="card-body">
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;background:var(--grey);">
+        <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Générer un lien de signature personnalisé à envoyer au client :<br><small>Le client signe depuis son propre téléphone.</small></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <button style="border:none;border-radius:10px;padding:14px 10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:white;background:#25D366;" onclick="sendSigLink('whatsapp')">💬 Lien via WhatsApp</button>
+          <button style="border:none;border-radius:10px;padding:14px 10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:white;background:var(--blue);" onclick="sendSigLink('email')">✉️ Lien via Email</button>
+        </div>
+        <div id="sig-link-box" style="display:none;background:white;border:1.5px solid var(--green);border-radius:10px;padding:14px;margin-top:12px;text-align:left;">
+          <p style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:8px;">✅ Lien de signature généré</p>
+          <div id="sig-link-url" style="font-size:12px;color:var(--muted);word-break:break-all;background:var(--grey);padding:8px 10px;border-radius:6px;margin-bottom:10px;"></div>
+          <button onclick="copyLink()" style="border:1.5px solid var(--border);background:var(--grey);border-radius:7px;padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">📋 Copier le lien</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <button class="reset-btn" onclick="resetForm()">🗑️ Réinitialiser le formulaire</button>
 </div>
 
@@ -748,6 +787,47 @@ function resetForm() {
   document.getElementById('sumup-box').style.display = 'none';
   calcTTC(); init();
   showToast('🗑️ Formulaire réinitialisé');
+}
+
+
+// SIGNATURE ÉLECTRONIQUE
+const JSONBIN_KEY_SIG = '$2a$10$L35SYtIshzm1IJ6rhDYPqeycBZZBcuglNYp0kukuBVbQidvii5ULW';
+
+async function saveDevisToJSONBin(d) {
+  const payload = { num: d.num, date: d.date, nom: d.nom, adresse: d.adresse, tel: d.tel, email: d.email, client: d.client, mission: d.mission, commercial: d.commercial, prestations: d.prestations, ht: d.ht, tva: d.tva, ttc: d.ttc, reglement: d.reglement, dateInterv: d.dateInterv, notes: d.notes, savedAt: new Date().toISOString() };
+  const resp = await fetch('https://api.jsonbin.io/v3/b', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY_SIG, 'X-Bin-Name': d.num, 'X-Bin-Private': 'false' }, body: JSON.stringify(payload) });
+  if (!resp.ok) throw new Error('JSONBin error');
+  const data = await resp.json();
+  return data.metadata.id;
+}
+
+async function sendSigLink(channel) {
+  const d = collectData();
+  if (!validate(d)) return;
+  if (channel === 'whatsapp' && !d.tel) { showToast('⚠️ Renseignez le téléphone du client'); return; }
+  if (channel === 'email' && !d.email) { showToast("⚠️ Renseignez l'email du client"); return; }
+  showToast('⏳ Génération du lien...');
+  let binId;
+  try { binId = await saveDevisToJSONBin(d); } catch(e) { showToast('❌ Erreur réseau, réessayez'); return; }
+  const sigUrl = 'https://starsnettinfo-lab.github.io/starsnett-devis/signer.html?id=' + binId;
+  document.getElementById('sig-link-url').textContent = sigUrl;
+  document.getElementById('sig-link-box').style.display = 'block';
+  if (channel === 'whatsapp') {
+    const tel = d.tel.replace(/\s/g,'');
+    const msg = encodeURIComponent('Bonjour ' + d.prenom + ' ' + d.nom + ',\n\nVotre devis Starsnett Services *' + d.num + '* est prêt.\n\nMontant TTC : *' + d.ttc + ' €*\n\nMerci de le signer électroniquement :\n' + sigUrl + '\n\nCordialement,\n' + (d.commercial||'Starsnett Services') + '\n📞 01 43 77 58 69');
+    window.open('https://wa.me/' + (tel.startsWith('0') ? '33'+tel.slice(1) : tel) + '?text=' + msg, '_blank');
+    showToast('💬 WhatsApp ouvert avec le lien de signature');
+  } else {
+    const subject = encodeURIComponent('Votre devis Starsnett N°' + d.num + ' – À signer');
+    const body = encodeURIComponent('Bonjour ' + d.prenom + ' ' + d.nom + ',\n\nVotre devis Starsnett N°' + d.num + ' est prêt.\n\nMontant TTC : ' + d.ttc + ' €\n\nMerci de le signer en cliquant sur ce lien :\n' + sigUrl + '\n\nCordialement,\n' + (d.commercial||'Starsnett Services') + '\n📞 01 43 77 58 69');
+    window.location.href = 'mailto:' + d.email + '?subject=' + subject + '&body=' + body;
+    showToast('✉️ Email de signature ouvert');
+  }
+}
+
+function copyLink() {
+  const url = document.getElementById('sig-link-url').textContent;
+  navigator.clipboard.writeText(url).then(() => showToast('📋 Lien copié !'));
 }
 
 init();

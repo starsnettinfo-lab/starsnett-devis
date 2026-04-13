@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Starsnett – Application Commerciale & Qualité</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --navy: #0D2240;
+  --blue: #1B4F8A;
+  --blue-mid: #2563A8;
+  --blue-light: #EBF4FF;
+  --sky: #38BDF8;
+  --yellow: #F5C400;
+  --yellow-dim: #B8920A;
+  --green: #22C55E;
+  --green-light: #DCFCE7;
+  --red: #EF4444;
+  --orange: #F97316;
+  --border: #CBD5E1;
+  --grey-bg: #F8FAFD;
+  --grey: #E2E8F0;
+  --text: #0F172A;
+  --muted: #64748B;
+  --white: #FFFFFF;
+  --shadow-sm: 0 1px 3px rgba(13,34,64,0.08);
+  --shadow: 0 4px 20px rgba(13,34,64,0.10);
+  --shadow-lg: 0 8px 40px rgba(13,34,64,0.15);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--grey-bg); color: var(--text); min-height: 100vh; }
+
+/* ── TOP NAV ───────────────────────────────────────── */
+.top-nav {
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 64px;
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 2px 24px rgba(13,34,64,0.35);
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-star { color: var(--yellow); font-size: 22px; }
+.brand-name { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--white); font-size: 18px; letter-spacing: 0.5px; }
+.brand-sub { color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab {
+  padding: 8px 20px; border: none; background: transparent;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+  color: rgba(255,255,255,0.55); cursor: pointer;
+  border-radius: 50px; transition: all 0.2s; letter-spacing: 0.3px;
+}
+.nav-tab.active { background: var(--blue); color: white; }
+.nav-tab:hover:not(.active) { color: white; background: rgba(255,255,255,0.08); }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.nav-date { color: rgba(255,255,255,0.45); font-size: 12px; }
+
+/* ── PAGES ─────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── DEVIS PAGE ─────────────────────────────────────── */
+.devis-wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 120px; }
+.section-card {
+  background: var(--white); border-radius: var(--radius);
+  box-shadow: var(--shadow-sm); margin-bottom: 14px;
+  border: 1px solid var(--border); overflow: hidden;
+}
+.section-head {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+  padding: 11px 18px; display: flex; align-items: center; gap: 8px;
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.9);
+}
+.section-head .sh-icon { font-size: 14px; }
+.section-body { padding: 18px; }
+
+/* ── AI ASSISTANT ──────────────────────────────────── */
+.ai-panel {
+  background: linear-gradient(135deg, var(--navy) 0%, #1A3A6B 100%);
+  border-radius: var(--radius); margin-bottom: 14px;
+  border: 1px solid rgba(56,189,248,0.25); overflow: hidden;
+  box-shadow: 0 4px 24px rgba(13,34,64,0.2);
+}
+.ai-head {
+  padding: 14px 18px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ai-orb {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--sky), var(--blue-mid));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(56,189,248,0.4);
+  animation: pulse-orb 3s ease-in-out infinite;
+}
+@keyframes pulse-orb {
+  0%, 100% { box-shadow: 0 0 20px rgba(56,189,248,0.4); }
+  50% { box-shadow: 0 0 35px rgba(56,189,248,0.7); }
+}
+.ai-title { font-family: 'Syne', sans-serif; font-weight: 700; color: white; font-size: 14px; }
+.ai-sub { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 1px; }
+.ai-body { padding: 14px 18px; }
+.ai-input-row { display: flex; gap: 8px; }
+.ai-input {
+  flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50px; padding: 10px 18px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; color: white;
+  outline: none;
+}
+.ai-input::placeholder { color: rgba(255,255,255,0.3); }
+.ai-input:focus { border-color: var(--sky); background: rgba(255,255,255,0.09); }
+.ai-send-btn {
+  background: linear-gradient(135deg, var(--sky), var(--blue-mid));
+  border: none; border-radius: 50%; width: 42px; height: 42px; flex-shrink: 0;
+  cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; box-shadow: 0 4px 14px rgba(56,189,248,0.3);
+}
+.ai-send-btn:hover { transform: scale(1.08); }
+.ai-response {
+  margin-top: 12px; padding: 12px 16px;
+  background: rgba(255,255,255,0.06); border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.1); display: none;
+}
+.ai-response.visible { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.ai-response p { color: rgba(255,255,255,0.85); font-size: 13.5px; line-height: 1.6; }
+.ai-apply-btn {
+  margin-top: 10px; padding: 7px 16px; background: var(--sky);
+  border: none; border-radius: 50px; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; color: var(--navy); cursor: pointer;
+  display: none; transition: all 0.18s;
+}
+.ai-apply-btn:hover { background: white; }
+.ai-apply-btn.visible { display: inline-block; }
+.ai-typing { display: none; }
+.ai-typing.visible { display: flex; gap: 4px; margin-top: 10px; }
+.ai-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--sky);
+  animation: typing-dot 1.2s ease-in-out infinite;
+}
+.ai-dot:nth-child(2) { animation-delay: 0.2s; }
+.ai-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing-dot { 0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+/* ── FORM ELEMENTS ─────────────────────────────────── */
+.form-grid { display: grid; gap: 12px; }
+.form-2 { grid-template-columns: 1fr 1fr; }
+.field label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 5px; }
+.field input, .field textarea, .field select {
+  width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+  background: var(--grey-bg); outline: none; transition: all 0.18s; resize: none;
+}
+.field input:focus, .field textarea:focus { border-color: var(--blue); background: white; box-shadow: 0 0 0 3px rgba(27,79,138,0.08); }
+.field textarea { min-height: 68px; }
+
+.toggle-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.t-btn {
+  border: 1.5px solid var(--border); background: var(--grey-bg);
+  border-radius: 50px; padding: 8px 18px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--muted);
+  cursor: pointer; transition: all 0.18s; display: flex; align-items: center; gap: 6px;
+}
+.t-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); font-weight: 600; }
+.t-btn.green.active { border-color: var(--green); background: var(--green-light); color: #15803D; }
+
+.tab-bar { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 14px; gap: 4px; }
+.tab-btn {
+  flex: 1; padding: 10px 8px; background: none; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent;
+  margin-bottom: -2px; transition: all 0.18s;
+}
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.prest-group { margin-bottom: 12px; }
+.prest-group-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--muted); margin-bottom: 6px;
+  padding: 5px 10px; background: var(--grey-bg); border-radius: 6px;
+}
+.prest-list { display: flex; flex-direction: column; gap: 4px; }
+.prest-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px; border-radius: 9px;
+  border: 1.5px solid var(--border); background: var(--grey-bg);
+  cursor: pointer; transition: all 0.15s;
+}
+.prest-item:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+.prest-item.checked { border-color: var(--blue); background: var(--blue-light); }
+.prest-cb {
+  width: 20px; height: 20px; border: 2px solid var(--border);
+  border-radius: 5px; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  background: white; font-size: 12px; color: white; transition: all 0.15s;
+}
+.prest-item.checked .prest-cb { background: var(--blue); border-color: var(--blue); }
+.prest-item.checked .prest-cb::after { content: '✓'; }
+.prest-label { font-size: 14px; line-height: 1.4; }
+.prest-label small { display: block; font-size: 11px; color: var(--muted); }
+
+/* ── TARIF ─────────────────────────────────────────── */
+.tarif-row { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 10px; }
+.tarif-box {
+  background: var(--grey-bg); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+}
+.tarif-box label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); display: block; margin-bottom: 4px; }
+.tarif-box input { width: 100%; border: none; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); outline: none; }
+.tarif-box.ttc-box { background: linear-gradient(135deg, var(--navy), var(--blue)); border-color: transparent; }
+.tarif-box.ttc-box label { color: rgba(255,255,255,0.6); }
+.tarif-box.ttc-box input { color: var(--yellow); font-size: 26px; }
+
+/* ── ACTION BAR ────────────────────────────────────── */
+.action-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border); padding: 12px 16px;
+  display: flex; gap: 8px; z-index: 100; flex-wrap: wrap;
+  box-shadow: 0 -4px 20px rgba(13,34,64,0.08);
+}
+.action-bar.cq-bar { display: none; }
+.action-bar.cq-bar.show { display: flex; }
+.btn-action {
+  flex: 1; min-width: 120px; padding: 13px 10px;
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 7px; transition: all 0.18s; white-space: nowrap;
+}
+.btn-action:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+/* ── CQ PAGE ────────────────────────────────────────── */
+.cq-wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 120px; }
+.cq-header-card {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--blue-mid) 100%);
+  border-radius: var(--radius); padding: 22px; margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.cq-header-title { font-family: 'Syne', sans-serif; font-weight: 800; color: white; font-size: 20px; margin-bottom: 14px; }
+.cq-meta-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+.cq-meta-field { background: rgba(255,255,255,0.1); border-radius: var(--radius-sm); padding: 10px 14px; }
+.cq-meta-field label { font-size: 10px; color: rgba(255,255,255,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; display: block; margin-bottom: 4px; }
+.cq-meta-field input { width: 100%; background: transparent; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; color: white; font-weight: 500; outline: none; }
+.cq-meta-field input::placeholder { color: rgba(255,255,255,0.3); }
+
+.score-bar {
+  background: rgba(255,255,255,0.1); border-radius: var(--radius);
+  padding: 14px 18px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.score-circle {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: conic-gradient(var(--green) 0%, var(--green) var(--pct, 0%), rgba(255,255,255,0.1) var(--pct, 0%));
+  display: flex; align-items: center; justify-content: center;
+  position: relative; flex-shrink: 0;
+  box-shadow: 0 0 0 4px rgba(34,197,94,0.2);
+}
+.score-inner {
+  width: 52px; height: 52px; border-radius: 50%; background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 800; color: white; font-size: 15px;
+}
+.score-info { flex: 1; }
+.score-label { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; color: white; }
+.score-detail { color: rgba(255,255,255,0.55); font-size: 12px; margin-top: 2px; }
+.score-progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 50px; overflow: hidden; margin-top: 6px; }
+.score-progress-fill { height: 100%; background: var(--green); border-radius: 50px; transition: width 0.5s ease; width: 0%; }
+
+.cq-zone-card { background: white; border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.cq-zone-head {
+  padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+  background: var(--grey-bg); border-bottom: 1px solid var(--border);
+  cursor: pointer; user-select: none;
+}
+.cq-zone-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+.cq-zone-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 50px; }
+.badge-ok { background: var(--green-light); color: #15803D; }
+.badge-nok { background: #FEE2E2; color: #991B1B; }
+.badge-neutral { background: var(--grey); color: var(--muted); }
+.cq-zone-body { padding: 0; }
+.cq-item {
+  display: grid; grid-template-columns: 2fr 1fr minmax(120px,auto) 1fr;
+  align-items: center; padding: 10px 16px; gap: 12px;
+  border-bottom: 1px solid var(--border); transition: background 0.15s;
+}
+.cq-item:last-child { border-bottom: none; }
+.cq-item:hover { background: var(--grey-bg); }
+.cq-item-task { font-size: 13.5px; line-height: 1.4; }
+.cq-item-level { font-size: 11px; color: var(--muted); font-style: italic; }
+.cq-item-method { font-size: 11px; color: var(--muted); text-align: center; }
+.cq-radios { display: flex; gap: 6px; justify-content: center; }
+.cq-radio {
+  padding: 5px 12px; border-radius: 50px; border: 1.5px solid var(--border);
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif; background: white;
+}
+.cq-radio.ok { color: var(--green); }
+.cq-radio.ok.active { background: var(--green); color: white; border-color: var(--green); }
+.cq-radio.nok { color: var(--red); }
+.cq-radio.nok.active { background: var(--red); color: white; border-color: var(--red); }
+.cq-obs-input {
+  width: 100%; border: 1px solid var(--border); border-radius: 7px;
+  padding: 6px 10px; font-family: 'DM Sans', sans-serif; font-size: 12px;
+  color: var(--text); background: var(--grey-bg); outline: none;
+}
+.cq-obs-input:focus { border-color: var(--blue); background: white; }
+
+.cq-ai-panel {
+  background: linear-gradient(135deg, #0D2240 0%, #1A3A6B 100%);
+  border-radius: var(--radius); padding: 18px; margin-bottom: 14px;
+  border: 1px solid rgba(56,189,248,0.2);
+}
+
+/* ── TOAST ─────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(10px);
+  background: var(--navy); color: white; padding: 11px 24px;
+  border-radius: 50px; font-size: 14px; font-weight: 500;
+  opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none;
+  box-shadow: var(--shadow-lg); white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── STATUS BANNER ────────────────────────────────── */
+.devis-num-display {
+  background: var(--blue-light); border: 1.5px solid var(--blue);
+  border-radius: var(--radius-sm); padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.devis-num-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; color: var(--blue); }
+.devis-num-date { font-size: 12px; color: var(--muted); }
+
+.rib-box {
+  background: var(--blue-light); border: 1.5px solid var(--blue);
+  border-radius: var(--radius-sm); padding: 14px; margin-top: 12px; display: none;
+}
+.solde-box {
+  background: var(--green-light); border: 1.5px solid var(--green);
+  border-radius: var(--radius-sm); padding: 14px; margin-top: 12px;
+}
+.acompte-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+@media (max-width: 640px) {
+  .form-2 { grid-template-columns: 1fr; }
+  .tarif-row { grid-template-columns: 1fr 1fr; }
+  .tarif-box.ttc-box { grid-column: span 2; }
+  .cq-meta-row { grid-template-columns: 1fr 1fr; }
+  .cq-item { grid-template-columns: 1fr; }
+  .nav-tabs .nav-tab { padding: 8px 12px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ────── TOP NAV ────── -->
+<nav class="top-nav">
+  <div class="brand">
+    <span class="brand-star">⭐</span>
+    <div>
+      <div class="brand-name">Starsnett</div>
+      <div class="brand-sub">Services</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchPage('devis',this)">📋 Devis</button>
+    <button class="nav-tab" onclick="switchPage('cq',this)">✅ Contrôle Qualité</button>
+  </div>
+  <div class="nav-right">
+    <span class="nav-date" id="top-date"></span>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════
+  PAGE DEVIS
+══════════════════════════════════════════════════ -->
+<div class="page active" id="page-devis">
+<div class="devis-wrap">
+
+  <!-- Numéro devis -->
+  <div class="devis-num-display">
+    <div><span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">N° Devis</span><div class="devis-num-val" id="devis-num-val">—</div></div>
+    <div class="devis-num-date" id="devis-date-val"></div>
+  </div>
+
+  <!-- IA DEVIS -->
+  <div class="ai-panel">
+    <div class="ai-head">
+      <div class="ai-orb">🤖</div>
+      <div>
+        <div class="ai-title">Assistant IA Devis</div>
+        <div class="ai-sub">Décrivez le chantier, je génère le devis</div>
+      </div>
+    </div>
+    <div class="ai-body">
+      <div class="ai-input-row">
+        <input class="ai-input" id="ai-devis-input" placeholder="Ex : nettoyage bureaux 200m² Paris 12e, contrat hebdo…" onkeydown="if(event.key==='Enter')askAI('devis')">
+        <button class="ai-send-btn" onclick="askAI('devis')">✨</button>
+      </div>
+      <div class="ai-typing" id="ai-devis-typing">
+        <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
+      </div>
+      <div class="ai-response" id="ai-devis-response">
+        <p id="ai-devis-text"></p>
+        <button class="ai-apply-btn" id="ai-devis-apply" onclick="applyAIDevis()">⚡ Appliquer les suggestions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPE DE MISSION -->
+  <div class="section-card">
+    <div class="section-head"><span class="sh-icon">🏷️</span> Type de mission</div>
+    <div class="section-body">
+      <div class="toggle-row">
+        <button class="t-btn" data-group="client" data-val="Particulier" onclick="selectToggle(this)">👤 Particulier</button>
+        <button class="t-btn" data-group="client" data-val="Professionnel" onclick="selectToggle(this)">🏢 Professionnel</button>
+      </div>
+      <div class="toggle-row">
+        <button class="t-btn" data-group="mission" data-val="Ponctuel" onclick="selectToggle(this)">📌 Ponctuel</button>
+        <button class="t-btn" data-group="mission" data-val="Contrat" onclick="selectToggle(this)">📄 Contrat</button>
+        <button class="t-btn" data-group="mission" data-val="Contrat hebdo" onclick="selectToggle(this)">🔄 Contrat hebdo</button>
+        <button class="t-btn" data-group="mission" data-val="Contrat mensuel" onclick="selectToggle(this)">📅 Contrat mensuel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT -->
+  <div class="section-card">
+    <div class="section-head"><span class="sh-icon">👤</span> Informations client</div>
+    <div class="section-body">
+      <div class="form-grid form-2">
+        <div class="field"><label>Prénom *</label><input id="c-prenom" type="text" placeholder="Jean"></div>
+        <div class="field"><label>Nom *</label><input id="c-nom" type="text" placeholder="Dupont"></div>
+      </div>
+      <div class="form-grid form-2" style="margin-top:12px;">
+        <div class="field"><label>Société</label><input id="c-societe" type="text" placeholder="SARL XYZ"></div>
+        <div class="field"><label>Interlocuteur</label><input id="c-interlocuteur" type="text" placeholder="M. Martin"></div>
+      </div>
+      <div class="form-grid form-2" style="margin-top:12px;">
+        <div class="field"><label>Téléphone *</label><input id="c-tel" type="tel" placeholder="06 xx xx xx xx"></div>
+        <div class="field"><label>Email</label><input id="c-email" type="email" placeholder="client@email.com"></div>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="field"><label>Adresse (N° et rue) *</label><input id="c-rue" type="text" placeholder="83 Rue de Reuilly"></div>
+      </div>
+      <div class="form-grid form-2" style="margin-top:12px;">
+        <div class="field"><label>Code postal *</label><input id="c-cp" type="text" placeholder="75012" maxlength="5"></div>
+        <div class="field"><label>Ville *</label><input id="c-ville" type="text" placeholder="Paris"></div>
+      </div>
+      <div style="background:var(--grey-bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin-top:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px;">🔑 Accès</div>
+        <div class="form-grid form-2">
+          <div class="field"><label>Nom sonnette</label><input id="c-sonnette" type="text" placeholder="Nom affiché"></div>
+          <div class="field"><label>Digicode</label><input id="c-digicode" type="text" placeholder="A1234"></div>
+        </div>
+        <div class="field" style="margin-top:10px;"><label>Infos accès complémentaires</label><input id="c-acces" type="text" placeholder="2ème étage, porte gauche, gardien..."></div>
+      </div>
+      <div class="field" style="margin-top:12px;"><label>Recommandé par</label><input id="c-reco" type="text" placeholder="Prescripteur / source"></div>
+    </div>
+  </div>
+
+  <!-- PRESTATIONS -->
+  <div class="section-card">
+    <div class="section-head"><span class="sh-icon">🧹</span> Prestations</div>
+    <div class="section-body">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('part',this)">🏠 Particuliers</button>
+        <button class="tab-btn" onclick="switchTab('pro',this)">🏢 Professionnels</button>
+      </div>
+      <div class="tab-panel active" id="tab-part">
+        <div class="toggle-row" style="margin-bottom:14px;">
+          <button class="t-btn" data-group="logement" data-val="Maison" onclick="selectToggle(this)">🏡 Maison</button>
+          <button class="t-btn" data-group="logement" data-val="Appartement" onclick="selectToggle(this)">🏢 Appartement</button>
+          <button class="t-btn" data-group="logement" data-val="Studio" onclick="selectToggle(this)">🛏️ Studio</button>
+        </div>
+        <div class="prest-group">
+          <div class="prest-group-title">🏠 Grand nettoyage</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="remise"><div class="prest-cb"></div><div class="prest-label">Remise en état complet<small>Sols, vitres, cuisine, SdB, portes, interrupteurs, radiateurs</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="maison"><div class="prest-cb"></div><div class="prest-label">Nettoyage maison / appartement<small>Avant / après déménagement</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="vitres"><div class="prest-cb"></div><div class="prest-label">Nettoyage vitres et baies vitrées</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="balcons"><div class="prest-cb"></div><div class="prest-label">Balcons et terrasses</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="sols"><div class="prest-cb"></div><div class="prest-label">Nettoyage des sols</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="cuisine"><div class="prest-cb"></div><div class="prest-label">Nettoyage de la cuisine</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="sanitaires"><div class="prest-cb"></div><div class="prest-label">Sanitaires (WC et salle de bain)</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="moquette"><div class="prest-cb"></div><div class="prest-label">Shampouinage de la moquette</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="lessivage"><div class="prest-cb"></div><div class="prest-label">Lessivage des murs et plafonds</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="debarras"><div class="prest-cb"></div><div class="prest-label">Débarras des encombrants</div></div>
+          </div>
+        </div>
+        <div class="prest-group">
+          <div class="prest-group-title">🏢 Immobilier</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="immeuble"><div class="prest-cb"></div><div class="prest-label">Nettoyage d'immeuble</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="copropriete"><div class="prest-cb"></div><div class="prest-label">Nettoyage copropriété<small>Parties communes, hall, escaliers</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="parking"><div class="prest-cb"></div><div class="prest-label">Nettoyage parking</div></div>
+          </div>
+        </div>
+        <div class="prest-group">
+          <div class="prest-group-title">⚡ Situations spécifiques</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="etat-lieux"><div class="prest-cb"></div><div class="prest-label">Nettoyage état des lieux<small>Entrée ou sortie</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="chantier"><div class="prest-cb"></div><div class="prest-label">Fin de chantier</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="demenagement"><div class="prest-cb"></div><div class="prest-label">Après déménagement</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="incendie"><div class="prest-cb"></div><div class="prest-label">Après incendie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="degat-eaux"><div class="prest-cb"></div><div class="prest-label">Après dégât des eaux</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="insalubre"><div class="prest-cb"></div><div class="prest-label">Logement insalubre / Syndrome Diogène</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="fientes"><div class="prest-cb"></div><div class="prest-label">Salissures animalières / fientes de pigeons</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-pro">
+        <div class="prest-group">
+          <div class="prest-group-title">🏢 Bureaux & Locaux</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-bureaux"><div class="prest-cb"></div><div class="prest-label">Bureaux / open space</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sols"><div class="prest-cb"></div><div class="prest-label">Entretien des sols<small>Aspiration, lavage, décapage, cristallisation</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-vitres"><div class="prest-cb"></div><div class="prest-label">Vitres intérieures / cloisons vitrées</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sanitaires"><div class="prest-cb"></div><div class="prest-label">Sanitaires / vestiaires</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-reunion"><div class="prest-cb"></div><div class="prest-label">Salle de réunion / conférence</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-parties"><div class="prest-cb"></div><div class="prest-label">Parties communes / hall d'entrée</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-chantier"><div class="prest-cb"></div><div class="prest-label">Fin de chantier / remise en état</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-entrepot"><div class="prest-cb"></div><div class="prest-label">Entrepôt / local industriel</div></div>
+          </div>
+        </div>
+        <div class="prest-group">
+          <div class="prest-group-title">🍽️ Restauration</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-cuisine-pro"><div class="prest-cb"></div><div class="prest-label">Cuisine professionnelle<small>Hottes, équipements, plans de travail</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-restaurant"><div class="prest-cb"></div><div class="prest-label">Restaurant / brasserie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-boulangerie"><div class="prest-cb"></div><div class="prest-label">Boulangerie / pâtisserie</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-labo"><div class="prest-cb"></div><div class="prest-label">Laboratoire / agroalimentaire</div></div>
+          </div>
+        </div>
+        <div class="prest-group">
+          <div class="prest-group-title">🏥 Médical & Santé</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-medecin"><div class="prest-cb"></div><div class="prest-label">Cabinet médecin généraliste</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-dentiste"><div class="prest-cb"></div><div class="prest-label">Cabinet dentaire</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-kine"><div class="prest-cb"></div><div class="prest-label">Kinésithérapeute / ostéopathe</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-specialiste"><div class="prest-cb"></div><div class="prest-label">Cabinet spécialiste<small>Cardiologue, dermatologue...</small></div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-ehpad"><div class="prest-cb"></div><div class="prest-label">EHPAD / maison de retraite</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-creche"><div class="prest-cb"></div><div class="prest-label">Crèche / halte-garderie</div></div>
+          </div>
+        </div>
+        <div class="prest-group">
+          <div class="prest-group-title">🏪 Commerces & Autres</div>
+          <div class="prest-list">
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-magasin"><div class="prest-cb"></div><div class="prest-label">Magasin / commerce de détail</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-coiffure"><div class="prest-cb"></div><div class="prest-label">Salon de coiffure / esthétique</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-sport"><div class="prest-cb"></div><div class="prest-label">Salle de sport / fitness</div></div>
+            <div class="prest-item" onclick="togglePrest(this)" data-id="pro-evenement"><div class="prest-cb"></div><div class="prest-label">Salle des fêtes / événementiel</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px;"><label>Précisions / prestations supplémentaires</label><textarea id="prest-supp" placeholder="Fréquence, contraintes particulières, prestations hors liste..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- TARIFICATION -->
+  <div class="section-card">
+    <div class="section-head"><span class="sh-icon">💶</span> Tarification</div>
+    <div class="section-body">
+      <div class="tarif-row">
+        <div class="tarif-box"><label>Montant HT</label><input id="d-ht" type="number" placeholder="0.00" step="0.01" oninput="calcTTC()"></div>
+        <div class="tarif-box"><label>TVA 20%</label><input id="d-tva" type="number" readonly placeholder="0.00" style="color:var(--muted)"></div>
+        <div class="tarif-box ttc-box"><label>Total TTC</label><input id="d-ttc" type="number" readonly placeholder="0.00"></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px;">Mode de règlement</div>
+        <div class="toggle-row">
+          <button class="t-btn" data-group="reglement" data-val="Virement" onclick="selectToggle(this);showRIB()">🏦 Virement</button>
+          <button class="t-btn" data-group="reglement" data-val="CB (SumUp)" onclick="selectToggle(this);hideRIB()">💳 CB – SumUp</button>
+          <button class="t-btn" data-group="reglement" data-val="Chèque" onclick="selectToggle(this);hideRIB()">📝 Chèque</button>
+          <button class="t-btn" data-group="reglement" data-val="Espèces" onclick="selectToggle(this);hideRIB()">💵 Espèces</button>
+        </div>
+        <div class="rib-box" id="rib-box">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--blue);margin-bottom:10px;">🏦 Coordonnées bancaires – BNP Paribas</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+            <div><span style="color:var(--muted);font-size:11px;font-weight:600;">Titulaire</span><br><strong>SARL Starsnett Services</strong></div>
+            <div><span style="color:var(--muted);font-size:11px;font-weight:600;">Banque</span><br><strong>BNP Paribas</strong></div>
+            <div style="grid-column:span 2;"><span style="color:var(--muted);font-size:11px;font-weight:600;">IBAN</span><br><strong style="letter-spacing:1px;">FR76 3000 4029 5400 0100 5863 495</strong></div>
+            <div><span style="color:var(--muted);font-size:11px;font-weight:600;">BIC</span><br><strong>BNPAFRPPXXX</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="solde-box">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#15803D;margin-bottom:10px;">💰 Acompte</div>
+        <div class="acompte-grid">
+          <div class="field"><label>Montant acompte (€)</label><input id="d-acompte" type="number" placeholder="0.00" step="0.01" oninput="updateSolde()"></div>
+          <div class="field"><label>Solde restant (€)</label><input id="d-solde" type="number" placeholder="0.00" readonly style="color:var(--blue);font-weight:700;"></div>
+        </div>
+        <div class="toggle-row" style="margin-top:10px;">
+          <button class="t-btn green" data-group="acompte-reg" data-val="Virement" onclick="selectToggle(this)">🏦 Virement</button>
+          <button class="t-btn green" data-group="acompte-reg" data-val="CB" onclick="selectToggle(this)">💳 CB</button>
+          <button class="t-btn green" data-group="acompte-reg" data-val="Espèces" onclick="selectToggle(this)">💵 Espèces</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATE & NOTES -->
+  <div class="section-card">
+    <div class="section-head"><span class="sh-icon">📅</span> Date & Notes</div>
+    <div class="section-body">
+      <div class="form-grid form-2">
+        <div class="field"><label>Date souhaitée</label><input id="d-date" type="date"></div>
+        <div class="field"><label>Heure</label><input id="d-heure" type="time"></div>
+      </div>
+      <div class="field" style="margin-top:12px;"><label>Notes / observations</label><textarea id="d-notes" placeholder="Difficultés d'accès, matériel particulier, remarques..."></textarea></div>
+    </div>
+  </div>
+
+  <!-- COMMERCIAL -->
+  <div class="section-card">
+    <div class="section-head"><span class="sh-icon">👔</span> Commercial</div>
+    <div class="section-body">
+      <div class="toggle-row">
+        <button class="t-btn" data-group="commercial" data-val="Oumar Kébé" onclick="selectToggle(this);updateDevisNum()">Oumar Kébé</button>
+        <button class="t-btn" data-group="commercial" data-val="H. Nimaga" onclick="selectToggle(this);updateDevisNum()">H. Nimaga</button>
+        <button class="t-btn" data-group="commercial" data-val="Ketty Burel" onclick="selectToggle(this);updateDevisNum()">Ketty Burel</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DEVIS ACTION BAR -->
+<div class="action-bar" id="devis-bar">
+  <button class="btn-action" style="background:#6D28D9;color:white;" onclick="generateDevisPDF()">📄 PDF Devis</button>
+  <button class="btn-action" style="background:#0F766E;color:white;" onclick="generateBonPDF()">📋 Bon d'intervention</button>
+  <button class="btn-action" style="background:var(--blue);color:white;" onclick="sendEmailDevis()">✉️ Email Starsnett</button>
+  <button class="btn-action" style="background:#25D366;color:white;" onclick="sendWhatsAppDevis()">💬 WhatsApp</button>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  PAGE CONTRÔLE QUALITÉ
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-cq">
+<div class="cq-wrap">
+
+  <!-- HEADER CQ -->
+  <div class="cq-header-card">
+    <div class="cq-header-title">✅ Fiche de Contrôle Qualité</div>
+    <div class="cq-meta-row">
+      <div class="cq-meta-field"><label>Client / Site</label><input id="cq-client" placeholder="Nom du site…"></div>
+      <div class="cq-meta-field"><label>Agent</label><input id="cq-agent" placeholder="Nom de l'agent…"></div>
+      <div class="cq-meta-field"><label>Contrôleur</label><input id="cq-controleur" placeholder="Nom du superviseur…"></div>
+      <div class="cq-meta-field"><label>Date</label><input id="cq-date" type="date"></div>
+    </div>
+  </div>
+
+  <!-- TYPE DE SITE -->
+  <div class="section-card">
+    <div class="section-head"><span class="sh-icon">🏷️</span> Type de site</div>
+    <div class="section-body">
+      <div class="toggle-row">
+        <button class="t-btn active" data-group="cq-type" data-val="Bureaux" onclick="selectToggle(this);renderCQItems()">🏢 Bureaux / PC</button>
+        <button class="t-btn" data-group="cq-type" data-val="Medical" onclick="selectToggle(this);renderCQItems()">🏥 Cabinet Médical</button>
+        <button class="t-btn" data-group="cq-type" data-val="Restaurant" onclick="selectToggle(this);renderCQItems()">🍽️ Restauration</button>
+        <button class="t-btn" data-group="cq-type" data-val="Residences" onclick="selectToggle(this);renderCQItems()">🏠 Résidentiel</button>
+        <button class="t-btn" data-group="cq-type" data-val="Complet" onclick="selectToggle(this);renderCQItems()">📋 Complet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IA CQ -->
+  <div class="cq-ai-panel">
+    <div class="ai-head" style="padding:0 0 12px 0;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div class="ai-orb">🤖</div>
+      <div>
+        <div class="ai-title">Assistant IA Qualité</div>
+        <div class="ai-sub">Posez une question sur les non-conformités ou demandez une analyse</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="ai-input-row">
+        <input class="ai-input" id="ai-cq-input" placeholder="Ex: Analyse les non-conformités et propose des actions correctives…" onkeydown="if(event.key==='Enter')askAI('cq')">
+        <button class="ai-send-btn" onclick="askAI('cq')">✨</button>
+      </div>
+      <div class="ai-typing" id="ai-cq-typing">
+        <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
+      </div>
+      <div class="ai-response" id="ai-cq-response" style="margin-top:0;">
+        <p id="ai-cq-text"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-bar" style="background:linear-gradient(135deg,var(--navy),var(--blue-mid));">
+    <div class="score-circle" id="score-circle">
+      <div class="score-inner" id="score-inner">—%</div>
+    </div>
+    <div class="score-info">
+      <div class="score-label" id="score-label">Score de conformité</div>
+      <div class="score-detail" id="score-detail">Aucun point contrôlé</div>
+      <div class="score-progress-bar"><div class="score-progress-fill" id="score-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- CQ ZONES (populated dynamically) -->
+  <div id="cq-zones-container"></div>
+
+</div>
+
+<!-- CQ ACTION BAR -->
+<div class="action-bar cq-bar show" id="cq-bar">
+  <button class="btn-action" style="background:#6D28D9;color:white;" onclick="generateCQPDF()">📄 Rapport PDF</button>
+  <button class="btn-action" style="background:var(--blue);color:white;" onclick="sendEmailCQ()">✉️ Envoyer Email</button>
+  <button class="btn-action" style="background:#25D366;color:white;" onclick="sendWhatsAppCQ()">💬 WhatsApp</button>
+  <button class="btn-action" style="background:#EF4444;color:white;" onclick="resetCQ()">🗑️ Réinitialiser</button>
+</div>
+</div>
+
+<script>
+// ─── STATE ──────────────────────────────────────────────────
+const state = { client:'', mission:'', commercial:'', reglement:'', acompteReg:'', logement:'', cqType:'Bureaux' };
+let devisId = '';
+let aiDevisData = null;
+
+// ─── INIT ────────────────────────────────────────────────────
+function init() {
+  const now = new Date();
+  document.getElementById('top-date').textContent = now.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('d-date').value = now.toISOString().split('T')[0];
+  document.getElementById('cq-date').value = now.toISOString().split('T')[0];
+  updateDevisNum();
+  renderCQItems();
+  // pre-select Bureaux CQ type
+  document.querySelector('[data-group="cq-type"][data-val="Bureaux"]').classList.add('active');
+  state.cqType = 'Bureaux';
+}
+
+function updateDevisNum() {
+  const now = new Date();
+  const initial = state.commercial === 'Oumar Kébé' ? 'OK' : state.commercial === 'Ketty Burel' ? 'KB' : 'HN';
+  devisId = initial + '-' + now.getFullYear().toString().slice(2) +
+    String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' +
+    String(Math.floor(Math.random()*9000)+1000);
+  document.getElementById('devis-num-val').textContent = '#' + devisId;
+  document.getElementById('devis-date-val').textContent = now.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+}
+
+// ─── PAGE SWITCH ─────────────────────────────────────────────
+function switchPage(p, btn) {
+  document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('devis-bar').style.display = p === 'devis' ? 'flex' : 'none';
+  document.getElementById('cq-bar').style.display = p === 'cq' ? 'flex' : 'none';
+}
+
+// ─── TOGGLES ─────────────────────────────────────────────────
+function selectToggle(btn) {
+  const group = btn.dataset.group;
+  document.querySelectorAll('[data-group="' + group + '"]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state[group] = btn.dataset.val;
+}
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+function togglePrest(item) { item.classList.toggle('checked'); }
+function showRIB() { document.getElementById('rib-box').style.display = 'block'; }
+function hideRIB() { document.getElementById('rib-box').style.display = 'none'; }
+function calcTTC() {
+  const ht = parseFloat(document.getElementById('d-ht').value) || 0;
+  const tva = ht * 0.20;
+  document.getElementById('d-tva').value = ht > 0 ? tva.toFixed(2) : '';
+  document.getElementById('d-ttc').value = ht > 0 ? (ht+tva).toFixed(2) : '';
+  updateSolde();
+}
+function updateSolde() {
+  const ttc = parseFloat(document.getElementById('d-ttc').value) || 0;
+  const a = parseFloat(document.getElementById('d-acompte').value) || 0;
+  const s = ttc - a;
+  document.getElementById('d-solde').value = s > 0 ? s.toFixed(2) : '';
+}
+
+// ─── COLLECT DATA ────────────────────────────────────────────
+function collectDevis() {
+  const prests = [];
+  document.querySelectorAll('.prest-item.checked').forEach(item => {
+    prests.push(item.querySelector('.prest-label').childNodes[0].textContent.trim());
+  });
+  const supp = document.getElementById('prest-supp').value.trim();
+  if (supp) prests.push('Supp: ' + supp);
+  const dv = document.getElementById('d-date').value;
+  const hv = document.getElementById('d-heure').value;
+  let dateStr = '';
+  if (dv) { dateStr = new Date(dv+'T12:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); if (hv) dateStr += ' à ' + hv; }
+  return {
+    num: devisId,
+    client: state.client, mission: state.mission, commercial: state.commercial,
+    reglement: state.reglement, acompteReg: state.acompteReg,
+    prenom: document.getElementById('c-prenom').value.trim(),
+    nom: document.getElementById('c-nom').value.trim(),
+    societe: document.getElementById('c-societe').value.trim(),
+    tel: document.getElementById('c-tel').value.trim(),
+    email: document.getElementById('c-email').value.trim(),
+    rue: document.getElementById('c-rue').value.trim(),
+    cp: document.getElementById('c-cp').value.trim(),
+    ville: document.getElementById('c-ville').value.trim(),
+    adresse: [document.getElementById('c-rue').value.trim(), document.getElementById('c-cp').value.trim(), document.getElementById('c-ville').value.trim()].filter(Boolean).join(', '),
+    sonnette: document.getElementById('c-sonnette').value.trim(),
+    digicode: document.getElementById('c-digicode').value.trim(),
+    acces: document.getElementById('c-acces').value.trim(),
+    reco: document.getElementById('c-reco').value.trim(),
+    prests,
+    ht: document.getElementById('d-ht').value || '—',
+    tva: document.getElementById('d-tva').value || '—',
+    ttc: document.getElementById('d-ttc').value || '—',
+    acompte: document.getElementById('d-acompte').value || '—',
+    solde: document.getElementById('d-solde').value || '—',
+    date: dateStr,
+    notes: document.getElementById('d-notes').value.trim(),
+  };
+}
+function validateDevis(d) {
+  if (!d.nom) { toast('⚠️ Indiquer le nom du client'); return false; }
+  if (!d.adresse) { toast("⚠️ Indiquer l'adresse"); return false; }
+  if (!d.tel) { toast('⚠️ Indiquer le téléphone'); return false; }
+  if (!d.prests.length) { toast('⚠️ Sélectionner au moins une prestation'); return false; }
+  if (!document.getElementById('d-ht').value) { toast('⚠️ Indiquer le montant HT'); return false; }
+  return true;
+}
+
+// ─── AI ──────────────────────────────────────────────────────
+async function askAI(type) {
+  const inputEl = document.getElementById('ai-' + type + '-input');
+  const prompt = inputEl.value.trim();
+  if (!prompt) return;
+  const typingEl = document.getElementById('ai-' + type + '-typing');
+  const responseEl = document.getElementById('ai-' + type + '-response');
+  const textEl = document.getElementById('ai-' + type + '-text');
+  typingEl.classList.add('visible');
+  responseEl.classList.remove('visible');
+  let systemPrompt = '';
+  if (type === 'devis') {
+    systemPrompt = `Tu es l'assistant commercial de Starsnett Services, entreprise de nettoyage professionnelle à Paris (SARL, SIRET: 523 021 665 00022). 
+Tu aides à rédiger des devis de nettoyage.
+Quand on te décrit un chantier, tu proposes:
+1. Le type de mission approprié
+2. Les prestations à sélectionner parmi: nettoyage bureaux, sols, vitres, sanitaires, cuisine, parties communes, etc.
+3. Une estimation de prix HT réaliste (bureaux ~0.50-2€/m², médical ~1-3€/m², particuliers ~15-25€/h)
+4. Le mode de règlement conseillé
+Réponds en français, de façon concise et professionnelle. Structure ta réponse clairement.
+Si tu proposes un prix, indique-le clairement avec "Prix HT suggéré: X €"`;
+    const context = `Demande: ${prompt}`;
+    try {
+      const resp = await callClaude(systemPrompt, context);
+      typingEl.classList.remove('visible');
+      textEl.innerHTML = resp.replace(/\n/g, '<br>');
+      responseEl.classList.add('visible');
+      const applyBtn = document.getElementById('ai-devis-apply');
+      aiDevisData = resp;
+      applyBtn.classList.add('visible');
+    } catch(e) {
+      typingEl.classList.remove('visible');
+      textEl.textContent = "Erreur de connexion. Vérifiez votre accès internet.";
+      responseEl.classList.add('visible');
+    }
+  } else {
+    const cqContext = buildCQContext();
+    systemPrompt = `Tu es le responsable qualité de Starsnett Services, entreprise de nettoyage professionnelle.
+Tu analyses les fiches de contrôle qualité et donnes des recommandations concrètes.
+Quand tu reçois les résultats d'un contrôle, tu:
+1. Identifies les zones de non-conformité
+2. Proposes des actions correctives immédiates
+3. Donnes des conseils de formation pour l'équipe
+4. Évalues le niveau de risque (faible/moyen/élevé)
+Réponds en français, de façon professionnelle et actionnable.`;
+    const context = `Fiche de contrôle: ${cqContext}\n\nQuestion: ${prompt}`;
+    try {
+      const resp = await callClaude(systemPrompt, context);
+      typingEl.classList.remove('visible');
+      textEl.innerHTML = resp.replace(/\n/g, '<br>');
+      responseEl.classList.add('visible');
+    } catch(e) {
+      typingEl.classList.remove('visible');
+      textEl.textContent = "Erreur de connexion. Vérifiez votre accès internet.";
+      responseEl.classList.add('visible');
+    }
+  }
+}
+
+async function callClaude(system, prompt) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      system: system,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  if (!response.ok) throw new Error('API error');
+  const data = await response.json();
+  return data.content.map(b => b.text || '').join('');
+}
+
+function applyAIDevis() {
+  if (!aiDevisData) return;
+  const text = aiDevisData;
+  // Try to extract price
+  const priceMatch = text.match(/[Pp]rix\s*HT\s*[sS]uggér[ée]?\s*:?\s*(\d+[\s,]?\d*)/);
+  if (priceMatch) {
+    const price = priceMatch[1].replace(/[\s,]/g, '').replace(',', '.');
+    document.getElementById('d-ht').value = price;
+    calcTTC();
+  }
+  // Try to detect mission type keywords
+  if (text.toLowerCase().includes('contrat')) {
+    if (text.toLowerCase().includes('hebdo')) { document.querySelector('[data-val="Contrat hebdo"]')?.click(); }
+    else { document.querySelector('[data-val="Contrat"]')?.click(); }
+  } else if (text.toLowerCase().includes('ponctuel')) {
+    document.querySelector('[data-val="Ponctuel"]')?.click();
+  }
+  // Detect professional
+  if (text.toLowerCase().includes('professionnel') || text.toLowerCase().includes('bureau') || text.toLowerCase().includes('commercial')) {
+    document.querySelector('[data-group="client"][data-val="Professionnel"]')?.click();
+    // Switch to pro tab
+    document.querySelectorAll('.tab-btn').forEach(b => { if(b.textContent.includes('Professionnel')) b.click(); });
+  }
+  toast('⚡ Suggestions appliquées !');
+}
+
+function buildCQContext() {
+  const items = document.querySelectorAll('[data-cq-id]');
+  const nok = [];
+  const ok = [];
+  items.forEach(item => {
+    const task = item.dataset.task;
+    const zone = item.dataset.zone;
+    const conformeEl = item.querySelector('.cq-radio.ok.active');
+    const nonConformeEl = item.querySelector('.cq-radio.nok.active');
+    const obs = item.querySelector('.cq-obs-input')?.value || '';
+    if (nonConformeEl) nok.push(`${zone} – ${task}${obs ? ' (obs: '+obs+')' : ''}`);
+    else if (conformeEl) ok.push(`${zone} – ${task}`);
+  });
+  return `Conformes: ${ok.join(', ') || 'aucun'}. Non-conformes: ${nok.join(', ') || 'aucun'}.`;
+}
+
+// ─── CQ DATA ─────────────────────────────────────────────────
+const CQ_DATA = {
+  Bureaux: [
+    { zone: '🖥️ Bureaux & Zones de travail', items: [
+      { task: 'Nettoyage des bureaux (surfaces libres)', method: 'Visuel', level: 'Sans poussière ni trace' },
+      { task: 'Époussetage des étagères et rebords', method: 'Visuel / doigt', level: 'Sans dépôt' },
+      { task: 'Chaises et fauteuils (assises et piètements)', method: 'Visuel', level: 'Propres, sans poils ni taches' },
+      { task: 'Imprimantes et matériel bureautique', method: 'Visuel', level: 'Sans traces de doigts' },
+      { task: 'Téléphones et combinés', method: 'Visuel / lingette', level: 'Désinfectés, sans traces' },
+      { task: 'Vidage des poubelles et récipients', method: 'Visuel', level: 'Vides, sacs changés' },
+    ]},
+    { zone: '🪟 Vitres & Ouvertures', items: [
+      { task: 'Nettoyage vitres intérieures', method: 'Visuel lumière', level: 'Transparence totale, sans traces' },
+      { task: 'Cloisons vitrées / encadrements', method: 'Visuel', level: 'Sans poussière' },
+      { task: 'Rails de fenêtres', method: 'Visuel', level: 'Sans résidus' },
+    ]},
+    { zone: '🧱 Sols, Murs & Portes', items: [
+      { task: 'Aspiration et lavage des sols', method: 'Visuel', level: 'Sans débris, sans traces de lavage' },
+      { task: 'Nettoyage des plinthes et coins', method: 'Visuel', level: 'Nettoyés, sans accumulation de poussière' },
+      { task: 'Lessivage des murs (traces, salissures)', method: 'Visuel', level: 'Disparition des traces' },
+      { task: 'Portes, poignées et dessus de porte', method: 'Visuel / contact', level: 'Poignées désinfectées, sans trace' },
+    ]},
+    { zone: '🚿 Sanitaires', items: [
+      { task: 'Désinfection cuvettes WC et urinoirs', method: 'Visuel + odeur', level: 'Sans tartre ni trace, sans odeur' },
+      { task: 'Lavabos, vasques et robinetteries', method: 'Visuel', level: 'Brillance du chrome, sans calcaire' },
+      { task: 'Carrelage mural et miroirs', method: 'Visuel', level: 'Sans éclaboussures ni buée' },
+      { task: 'Réapprovisionnement consommables', method: 'Visuel', level: 'Distributeurs pleins (savon, papier)' },
+    ]},
+    { zone: '🍽️ Cuisine & Récréation', items: [
+      { task: 'Plans de travail et éviers', method: 'Visuel', level: 'Dégraissés et désinfectés' },
+      { task: 'Électroménagers (MO, Frigo, Cafetière)', method: 'Visuel', level: 'Propres intérieur/extérieur' },
+      { task: 'Fontaine à eau', method: 'Visuel', level: 'Sans calcaire ni eaux stagnantes' },
+      { task: 'Tables et chaises de pause', method: 'Visuel', level: 'Propres' },
+    ]},
+    { zone: '🚶 Parties communes', items: [
+      { task: 'Couloirs de circulation (sols)', method: 'Visuel', level: 'Dégagés et propres' },
+      { task: 'Escaliers (marches et contre-marches)', method: 'Visuel', level: 'Nettoyés sur toute la largeur' },
+      { task: 'Rampes et mains courantes', method: 'Visuel', level: 'Sans traces de doigts' },
+      { task: 'Ascenseurs (parois et rails)', method: 'Visuel', level: 'Parois brillantes, rails aspirés' },
+    ]},
+    { zone: '🌟 Ambiance générale', items: [
+      { task: 'Ambiance et senteur', method: 'Odorat', level: 'Odeur fraîche et neutre' },
+      { task: 'Apparence générale des moquettes', method: 'Visuel', level: 'Sans taches apparentes' },
+    ]},
+  ],
+  Medical: [
+    { zone: '🏥 Zones de soins', items: [
+      { task: 'Tables d\'examen et équipements médicaux', method: 'Visuel', level: 'Désinfectés, sans traces' },
+      { task: 'Sols (aspiration et lavage)', method: 'Visuel', level: 'Sans débris ni traces' },
+      { task: 'Poignées de porte et interrupteurs', method: 'Visuel / test désinfection', level: 'Désinfectés' },
+    ]},
+    { zone: '🚿 Sanitaires patients', items: [
+      { task: 'WC et lavabos', method: 'Visuel + odeur', level: 'Désinfectés, sans tartre' },
+      { task: 'Robinetteries', method: 'Visuel', level: 'Sans calcaire, brillance' },
+      { task: 'Consommables (savon, papier)', method: 'Visuel', level: 'Pleins' },
+    ]},
+    { zone: '🪑 Salle d\'attente', items: [
+      { task: 'Sièges et mobilier', method: 'Visuel', level: 'Propres, sans traces' },
+      { task: 'Sols et plinthes', method: 'Visuel', level: 'Sans résidus' },
+      { task: 'Vitres et fenêtres', method: 'Visuel lumière', level: 'Transparentes' },
+    ]},
+  ],
+  Restaurant: [
+    { zone: '🍳 Cuisine professionnelle', items: [
+      { task: 'Hottes et filtres (extérieur)', method: 'Visuel', level: 'Sans graisse visible' },
+      { task: 'Plans de travail inox', method: 'Visuel', level: 'Brillants, sans résidus alimentaires' },
+      { task: 'Sols de cuisine (dégraissage)', method: 'Visuel', level: 'Sans graisse, non glissants' },
+      { task: 'Équipements de cuisson (extérieur)', method: 'Visuel', level: 'Sans carbonisation apparente' },
+      { task: 'Éviers et bacs à légumes', method: 'Visuel', level: 'Propres, sans calcaire' },
+    ]},
+    { zone: '🍽️ Salle de restaurant', items: [
+      { task: 'Tables et chaises (surfaces)', method: 'Visuel', level: 'Sans traces ni miettes' },
+      { task: 'Sols (aspiration et lavage)', method: 'Visuel', level: 'Sans débris, traces de lavage' },
+      { task: 'Vitres et miroirs décoratifs', method: 'Visuel lumière', level: 'Transparents, sans traces' },
+    ]},
+    { zone: '🚿 Sanitaires clients', items: [
+      { task: 'WC et urinoirs', method: 'Visuel + odeur', level: 'Désinfectés, sans odeur' },
+      { task: 'Lavabos et robinetteries', method: 'Visuel', level: 'Brillance, sans calcaire' },
+      { task: 'Consommables', method: 'Visuel', level: 'Pleins' },
+    ]},
+  ],
+  Residences: [
+    { zone: '🏠 Logement', items: [
+      { task: 'Sols (aspiration et lavage)', method: 'Visuel', level: 'Sans débris ni traces' },
+      { task: 'Cuisine (plans de travail, évier)', method: 'Visuel', level: 'Dégraissés, sans calcaire' },
+      { task: 'Salle de bain (WC, lavabo, baignoire)', method: 'Visuel', level: 'Désinfectés, sans calcaire' },
+      { task: 'Vitres et fenêtres', method: 'Visuel lumière', level: 'Transparentes' },
+      { task: 'Portes et poignées', method: 'Visuel', level: 'Sans traces de doigts' },
+    ]},
+    { zone: '🏢 Parties communes immeuble', items: [
+      { task: 'Hall d\'entrée (sols, boîtes aux lettres)', method: 'Visuel', level: 'Propre, sans déchets' },
+      { task: 'Escaliers (marches, rampes)', method: 'Visuel', level: 'Propres, sans résidus' },
+      { task: 'Couloirs de circulation', method: 'Visuel', level: 'Dégagés et propres' },
+    ]},
+  ],
+  Complet: [], // will be built from all
+};
+
+// Build Complet from all
+CQ_DATA.Complet = Object.values(CQ_DATA).filter(v => Array.isArray(v)).flat();
+// Fix: build Complet properly
+CQ_DATA.Complet = [
+  ...CQ_DATA.Bureaux,
+  ...CQ_DATA.Medical.map(z => ({...z, zone: z.zone + ' (Médical)'})),
+  ...CQ_DATA.Restaurant.map(z => ({...z, zone: z.zone + ' (Restauration)'})),
+];
+
+function renderCQItems() {
+  const type = state.cqType || 'Bureaux';
+  const zones = CQ_DATA[type] || CQ_DATA.Bureaux;
+  const container = document.getElementById('cq-zones-container');
+  container.innerHTML = '';
+  zones.forEach((zone, zi) => {
+    const zoneEl = document.createElement('div');
+    zoneEl.className = 'cq-zone-card';
+    const items = zone.items.map((item, ii) => {
+      const id = `cq-${zi}-${ii}`;
+      return `<div class="cq-item" data-cq-id="${id}" data-task="${item.task}" data-zone="${zone.zone.replace(/[^\w\s]/g,'')}">
+        <div>
+          <div class="cq-item-task">${item.task}</div>
+          <div class="cq-item-level">Attendu : ${item.level}</div>
+        </div>
+        <div class="cq-item-method">${item.method}</div>
+        <div class="cq-radios">
+          <button class="cq-radio ok" onclick="setCQRadio(this,'ok','${id}')">✓ OK</button>
+          <button class="cq-radio nok" onclick="setCQRadio(this,'nok','${id}')">✗ NOK</button>
+        </div>
+        <input class="cq-obs-input" placeholder="Observation…" oninput="updateCQScore()">
+      </div>`;
+    }).join('');
+    zoneEl.innerHTML = `
+      <div class="cq-zone-head" onclick="toggleZone(this)">
+        <div class="cq-zone-title">${zone.zone}<span class="cq-zone-badge badge-neutral" id="badge-${zi}">${zone.items.length} points</span></div>
+        <span style="color:var(--muted);font-size:12px;">▼</span>
+      </div>
+      <div class="cq-zone-body">${items}</div>`;
+    container.appendChild(zoneEl);
+  });
+  updateCQScore();
+}
+
+function toggleZone(head) {
+  const body = head.nextElementSibling;
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? '' : 'none';
+  head.querySelector('span:last-child').textContent = isHidden ? '▼' : '▶';
+}
+
+function setCQRadio(btn, val, id) {
+  const item = btn.closest('[data-cq-id]');
+  item.querySelectorAll('.cq-radio').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateCQScore();
+  updateZoneBadge(item);
+}
+
+function updateZoneBadge(item) {
+  const zoneCard = item.closest('.cq-zone-card');
+  const badgeEl = zoneCard.querySelector('.cq-zone-badge');
+  const items = zoneCard.querySelectorAll('[data-cq-id]');
+  let ok = 0, nok = 0;
+  items.forEach(it => {
+    if (it.querySelector('.cq-radio.ok.active')) ok++;
+    if (it.querySelector('.cq-radio.nok.active')) nok++;
+  });
+  const total = items.length;
+  const checked = ok + nok;
+  if (checked === 0) { badgeEl.className = 'cq-zone-badge badge-neutral'; badgeEl.textContent = total + ' points'; }
+  else if (nok === 0) { badgeEl.className = 'cq-zone-badge badge-ok'; badgeEl.textContent = `✓ ${ok}/${total} OK`; }
+  else if (ok === 0) { badgeEl.className = 'cq-zone-badge badge-nok'; badgeEl.textContent = `✗ ${nok}/${total} NOK`; }
+  else { badgeEl.className = 'cq-zone-badge badge-nok'; badgeEl.textContent = `${ok} OK / ${nok} NOK`; }
+}
+
+function updateCQScore() {
+  const items = document.querySelectorAll('[data-cq-id]');
+  let ok = 0, total = 0;
+  items.forEach(item => {
+    if (item.querySelector('.cq-radio.ok.active') || item.querySelector('.cq-radio.nok.active')) {
+      total++;
+      if (item.querySelector('.cq-radio.ok.active')) ok++;
+    }
+  });
+  const pct = total > 0 ? Math.round((ok/total)*100) : 0;
+  const inner = document.getElementById('score-inner');
+  const fill = document.getElementById('score-fill');
+  const label = document.getElementById('score-label');
+  const detail = document.getElementById('score-detail');
+  const circle = document.getElementById('score-circle');
+  inner.textContent = total > 0 ? pct + '%' : '—%';
+  fill.style.width = pct + '%';
+  circle.style.setProperty('--pct', pct + '%');
+  detail.textContent = total > 0 ? `${ok} conformes / ${total-ok} non-conformes (${total}/${document.querySelectorAll('[data-cq-id]').length} contrôlés)` : 'Aucun point contrôlé';
+  if (pct >= 90) { label.textContent = '🏆 Excellent'; fill.style.background = 'var(--green)'; circle.style.background = `conic-gradient(var(--green) 0%, var(--green) ${pct}%, rgba(255,255,255,0.1) ${pct}%)`; }
+  else if (pct >= 75) { label.textContent = '✅ Bon niveau'; fill.style.background = '#84CC16'; circle.style.background = `conic-gradient(#84CC16 0%, #84CC16 ${pct}%, rgba(255,255,255,0.1) ${pct}%)`; }
+  else if (pct >= 50) { label.textContent = '⚠️ À améliorer'; fill.style.background = 'var(--orange)'; circle.style.background = `conic-gradient(var(--orange) 0%, var(--orange) ${pct}%, rgba(255,255,255,0.1) ${pct}%)`; }
+  else if (total > 0) { label.textContent = '🚨 Non conforme'; fill.style.background = 'var(--red)'; circle.style.background = `conic-gradient(var(--red) 0%, var(--red) ${pct}%, rgba(255,255,255,0.1) ${pct}%)`; }
+  else { label.textContent = 'Score de conformité'; }
+}
+
+function resetCQ() {
+  if (!confirm('Réinitialiser le contrôle qualité ?')) return;
+  document.querySelectorAll('[data-cq-id]').forEach(item => {
+    item.querySelectorAll('.cq-radio').forEach(b => b.classList.remove('active'));
+    const obs = item.querySelector('.cq-obs-input');
+    if (obs) obs.value = '';
+  });
+  document.getElementById('cq-client').value = '';
+  document.getElementById('cq-agent').value = '';
+  document.getElementById('cq-controleur').value = '';
+  document.querySelectorAll('.cq-zone-badge').forEach(b => { b.className = 'cq-zone-badge badge-neutral'; });
+  updateCQScore();
+  toast('🗑️ Contrôle réinitialisé');
+}
+
+// ─── PDF DEVIS ───────────────────────────────────────────────
+async function generateDevisPDF() {
+  const d = collectDevis();
+  if (!validateDevis(d)) return;
+  toast('⏳ Génération PDF...');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, m = 15, CW = W - m*2;
+  let y = 0;
+  const navy=[13,34,64], blue=[27,79,138], yellow=[245,196,0], grey=[247,248,250], muted=[100,116,139];
+  // Header
+  doc.setFillColor(...navy); doc.rect(0, 0, W, 42, 'F');
+  doc.setTextColor(...yellow); doc.setFontSize(22); doc.setFont('helvetica','bold'); doc.text('Starsnett', m, 16);
+  doc.setTextColor(255,255,255); doc.setFontSize(12); doc.setFont('helvetica','normal'); doc.text('Services', m+48, 16);
+  doc.setFontSize(8); doc.setTextColor(160,190,230); doc.text('83, rue de Reuilly – 75012 Paris  |  01 43 77 58 69  |  contact@starsnett-services.com', m, 26);
+  doc.text('SARL – SIRET : 523 021 665 00022 – NAF : 8122Z', m, 32);
+  doc.setTextColor(...yellow); doc.setFontSize(15); doc.setFont('helvetica','bold'); doc.text('DEVIS N° ' + d.num, W-m, 15, {align:'right'});
+  doc.setFontSize(9); doc.setTextColor(160,190,230); doc.setFont('helvetica','normal');
+  doc.text(new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}), W-m, 23, {align:'right'});
+  doc.text((d.client||'') + ' / ' + (d.mission||''), W-m, 30, {align:'right'});
+  y = 50;
+  // Client section
+  doc.setFillColor(...blue); doc.rect(m, y, CW, 7, 'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.text('CLIENT', m+3, y+5); y += 10;
+  doc.setFillColor(...grey); doc.rect(m, y, CW, 28, 'F'); doc.setDrawColor(209,217,230); doc.rect(m, y, CW, 28, 'S');
+  doc.setTextColor(0,0,0); const rows = [['Nom / Société', `${d.prenom} ${d.nom}${d.societe?' – '+d.societe:''}`],['Adresse', d.adresse||'—'],['Téléphone', d.tel||'—'],['Email', d.email||'—']];
+  rows.forEach((r,i) => { doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.text(r[0]+' :', m+3, y+7+i*6); doc.setFont('helvetica','normal'); doc.text(r[1], m+33, y+7+i*6); });
+  y += 33;
+  // Prestations
+  doc.setFillColor(...blue); doc.rect(m, y, CW, 7, 'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text('PRESTATIONS', m+3, y+5); y += 10;
+  d.prests.forEach((p,i) => {
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFillColor(i%2===0?247:255,i%2===0?248:255,i%2===0?250:255); doc.rect(m, y, CW, 7, 'F'); doc.setDrawColor(209,217,230); doc.rect(m, y, CW, 7, 'S');
+    doc.setFillColor(...blue); doc.rect(m+2, y+1.5, 4, 4, 'F'); doc.setTextColor(255,255,255); doc.setFontSize(7); doc.text('✓', m+2.8, y+5);
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(p, m+9, y+5); y += 7;
+  });
+  y += 5;
+  if (y > 220) { doc.addPage(); y = 20; }
+  // Tarif
+  doc.setFillColor(...blue); doc.rect(m, y, CW, 7, 'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text('TARIFICATION', m+3, y+5); y += 10;
+  const c1 = CW*0.6, c2 = CW*0.4;
+  [['Montant HT', d.ht+' €'], ['TVA (20%)', d.tva+' €']].forEach(([label, val], i) => {
+    const bg = i%2===0 ? grey : [255,255,255]; doc.setFillColor(...bg); doc.rect(m, y, c1, 8, 'F'); doc.rect(m+c1, y, c2, 8, 'F'); doc.setDrawColor(209,217,230); doc.rect(m, y, c1, 8, 'S'); doc.rect(m+c1, y, c2, 8, 'S');
+    doc.setFont('helvetica','bold'); doc.setTextColor(0,0,0); doc.setFontSize(9); doc.text(label, m+3, y+5.5); doc.setFont('helvetica','normal'); doc.text(val, m+c1+3, y+5.5); y += 8;
+  });
+  doc.setFillColor(...navy); doc.rect(m, y, CW, 10, 'F');
+  doc.setTextColor(...yellow); doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text('TOTAL TTC', m+3, y+7); doc.text(d.ttc+' €', W-m-3, y+7, {align:'right'}); y += 14;
+  if (d.acompte !== '—') { doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(0,0,0); doc.text('Acompte versé : ', m, y); doc.setFont('helvetica','normal'); doc.text(d.acompte+' €', m+36, y); y += 6; doc.setFont('helvetica','bold'); doc.text('Solde restant : ', m, y); doc.setFont('helvetica','normal'); doc.text(d.solde+' €', m+32, y); y += 6; }
+  if (d.reglement) { doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(0,0,0); doc.text('Règlement : ', m, y); doc.setFont('helvetica','normal'); doc.text(d.reglement, m+26, y); y += 6; }
+  if (d.reglement === 'Virement') { doc.setFillColor(235,242,252); doc.rect(m, y, CW, 18, 'F'); doc.setDrawColor(...blue); doc.setLineWidth(0.5); doc.rect(m, y, CW, 18, 'S'); doc.setTextColor(...blue); doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.text('Coordonnées bancaires - BNP Paribas', m+3, y+5); doc.setFont('helvetica','normal'); doc.setTextColor(0,0,0); doc.text('IBAN : FR76 3000 4029 5400 0100 5863 495  –  BIC : BNPAFRPPXXX', m+3, y+11); doc.text('Titulaire : SARL Starsnett Services', m+3, y+16); y += 22; }
+  y += 4;
+  if (d.date) { doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(0,0,0); doc.text("Date d'intervention : ", m, y); doc.setFont('helvetica','normal'); doc.text(d.date, m+44, y); y += 7; }
+  // Signature
+  if (y > 230) { doc.addPage(); y = 20; }
+  y += 4;
+  doc.setTextColor(...muted); doc.setFont('helvetica','italic'); doc.setFontSize(7.5);
+  doc.text("Starsnett intervient en l'état. Devis ferme, à caractère forfaitaire. Acompte de 50% à la signature.", m, y, {maxWidth:CW}); y += 10;
+  const hw = (CW-5)/2;
+  doc.setFillColor(...grey); doc.setDrawColor(...blue); doc.setLineWidth(0.5);
+  doc.rect(m, y, hw, 7, 'F'); doc.rect(m, y, hw, 7, 'S'); doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.text('Bon pour accord le :', m+3, y+5); doc.rect(m, y+7, hw, 25, 'S');
+  doc.setFillColor(...grey); doc.rect(m+hw+5, y, hw, 7, 'F'); doc.rect(m+hw+5, y, hw, 7, 'S'); doc.text('Tampon & signature client :', m+hw+8, y+5); doc.rect(m+hw+5, y+7, hw, 25, 'S');
+  // Footer
+  doc.setFillColor(...navy); doc.rect(0, 287, W, 10, 'F'); doc.setTextColor(160,190,230); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+  doc.text('Tél : 01 43 77 58 69  –  contact@starsnett-services.com  –  83, Rue de Reuilly, 75012 Paris  –  SIRET : 523 021 665 00022', W/2, 293, {align:'center'});
+  doc.save('Devis_' + d.num + '_' + (d.nom||'client').replace(/[^a-zA-Z0-9]/g,'_') + '.pdf');
+  toast('✅ PDF téléchargé !');
+}
+
+// ─── PDF BON D'INTERVENTION ──────────────────────────────────
+async function generateBonPDF() {
+  const d = collectDevis();
+  if (!validateDevis(d)) return;
+  toast("⏳ Génération du bon...");
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W=210, m=15, CW=W-m*2;
+  let y=15;
+  const navy=[13,34,64], teal=[15,118,110], yellow=[245,196,0], grey=[247,248,250];
+  doc.setFillColor(...navy); doc.rect(0,0,W,38,'F');
+  doc.setTextColor(...yellow); doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.text('Starsnett Services',m,14);
+  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text('83, rue de Reuilly – 75012 Paris  |  01 43 77 58 69',m,22);
+  doc.setFillColor(...teal); doc.roundedRect(W-m-65,8,65,20,2,2,'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.text("BON D'INTERVENTION",W-m-32,17,{align:'center'}); doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text('N° '+d.num,W-m-32,24,{align:'center'});
+  y=46;
+  doc.setFillColor(...teal); doc.rect(m,y,CW,7,'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text('CLIENT & ACCÈS',m+3,y+5); y+=10;
+  doc.setFillColor(...grey); doc.rect(m,y,CW,32,'F'); doc.setDrawColor(...teal); doc.rect(m,y,CW,32,'S');
+  [['Client',`${d.prenom} ${d.nom}${d.societe?' – '+d.societe:''}`],['Téléphone',d.tel||'—'],['Adresse',d.adresse||'—'],['Digicode',d.digicode||'—'],['Sonnette',d.sonnette||'—'],['Accès',d.acces||'—']].forEach((r,i)=>{
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(0,0,0); doc.text(r[0]+' :',m+3,y+7+i*5); doc.setFont('helvetica','normal'); doc.text(r[1],m+24,y+7+i*5);
+  }); y+=37;
+  doc.setFillColor(...teal); doc.rect(m,y,CW,7,'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text('PRESTATIONS À RÉALISER (cocher à la fin)',m+3,y+5); y+=10;
+  d.prests.forEach((p,i)=>{
+    if(y>240){doc.addPage();y=20;}
+    doc.setFillColor(i%2===0?247:255,i%2===0?248:255,i%2===0?250:255); doc.rect(m,y,CW,8,'F'); doc.setDrawColor(...teal); doc.setLineWidth(0.3); doc.rect(m,y,CW,8,'S');
+    doc.setLineWidth(0.6); doc.rect(m+2,y+1.5,5,5,'S'); doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(p,m+10,y+5.5); y+=8;
+  });
+  y+=10;
+  if(y>220){doc.addPage();y=20;}
+  doc.setFillColor(...teal); doc.rect(m,y,CW,7,'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text('OBSERVATIONS / INSTRUCTIONS',m+3,y+5); y+=10;
+  doc.setDrawColor(...teal); doc.setLineWidth(0.5); doc.rect(m,y,CW,22,'S'); if(d.notes){doc.setTextColor(0,0,0);doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.text(d.notes,m+3,y+6,{maxWidth:CW-6});} y+=27;
+  if(y>230){doc.addPage();y=20;}
+  const hw=(CW-5)/2;
+  doc.setFillColor(...grey); doc.setDrawColor(...teal); doc.rect(m,y,hw,8,'F'); doc.rect(m,y,hw,8,'S'); doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.text("Nom de l'agent :",m+3,y+5.5); doc.rect(m,y+8,hw,22,'S');
+  doc.setFillColor(...grey); doc.rect(m+hw+5,y,hw,8,'F'); doc.rect(m+hw+5,y,hw,8,'S'); doc.text('Signature client :',m+hw+8,y+5.5); doc.rect(m+hw+5,y+8,hw,22,'S');
+  doc.setFillColor(...navy); doc.rect(0,287,W,10,'F'); doc.setTextColor(160,190,230); doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.text('Starsnett Services – 01 43 77 58 69 – starsnettinfo@gmail.com – Document à conserver sur le site',W/2,293,{align:'center'});
+  doc.save('Bon_Intervention_'+d.num+'_'+(d.nom||'client').replace(/[^a-zA-Z0-9]/g,'_')+'.pdf');
+  toast("✅ Bon téléchargé !");
+}
+
+// ─── PDF RAPPORT CQ ──────────────────────────────────────────
+async function generateCQPDF() {
+  toast('⏳ Génération du rapport...');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W=210, m=15, CW=W-m*2;
+  let y=15;
+  const navy=[13,34,64], blue=[27,79,138], yellow=[245,196,0], grey=[247,248,250], green=[34,197,94], red=[239,68,68];
+  const client = document.getElementById('cq-client').value || '—';
+  const agent = document.getElementById('cq-agent').value || '—';
+  const ctrl = document.getElementById('cq-controleur').value || '—';
+  const date = document.getElementById('cq-date').value ? new Date(document.getElementById('cq-date').value+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
+  // Header
+  doc.setFillColor(...navy); doc.rect(0,0,W,42,'F');
+  doc.setTextColor(...yellow); doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.text('Starsnett Services',m,15);
+  doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.text('RAPPORT DE CONTRÔLE QUALITÉ',W-m,15,{align:'right'});
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(160,190,230);
+  doc.text(`Site : ${client}  |  Agent : ${agent}  |  Contrôleur : ${ctrl}  |  Date : ${date}`, m, 28);
+  // Score
+  const items = document.querySelectorAll('[data-cq-id]');
+  let ok=0, nok=0, total=0;
+  const nokItems=[];
+  items.forEach(item=>{
+    if(item.querySelector('.cq-radio.ok.active')||item.querySelector('.cq-radio.nok.active')){
+      total++;
+      if(item.querySelector('.cq-radio.ok.active')) ok++;
+      else { nok++; nokItems.push({zone:item.dataset.zone,task:item.dataset.task,obs:item.querySelector('.cq-obs-input')?.value||''}); }
+    }
+  });
+  const pct = total>0 ? Math.round((ok/total)*100) : 0;
+  y=50;
+  const scoreColor = pct>=90?green:pct>=75?[132,204,22]:pct>=50?[249,115,22]:red;
+  doc.setFillColor(...scoreColor); doc.rect(m,y,CW,16,'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.text(pct+'%', m+8, y+11);
+  doc.setFontSize(10); doc.text(pct>=90?'EXCELLENT':pct>=75?'BON NIVEAU':pct>=50?'À AMÉLIORER':'NON CONFORME', m+30, y+8);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text(`${ok} conformes / ${nok} non-conformes / ${total} contrôlés`, m+30, y+14);
+  y+=22;
+  // NOK items
+  if(nokItems.length>0){
+    doc.setFillColor(254,226,226); doc.rect(m,y,CW,7,'F'); doc.setDrawColor(...red); doc.setLineWidth(0.5); doc.rect(m,y,CW,7,'S');
+    doc.setTextColor(...red); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text('⚠ POINTS NON CONFORMES',m+3,y+5); y+=10;
+    nokItems.forEach(it=>{
+      if(y>265){doc.addPage();y=20;}
+      doc.setFillColor(255,245,245); doc.rect(m,y,CW,it.obs?12:8,'F'); doc.setDrawColor(252,165,165); doc.rect(m,y,CW,it.obs?12:8,'S');
+      doc.setFillColor(...red); doc.rect(m+2,y+2,3,3,'F');
+      doc.setTextColor(50,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.text(it.zone+' – '+it.task,m+8,y+5.5);
+      if(it.obs){doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(...red);doc.text('→ '+it.obs,m+8,y+10);}
+      y+=(it.obs?14:10);
+    });
+  }
+  y+=5;
+  // Summary table
+  if(y>240){doc.addPage();y=20;}
+  doc.setFillColor(...navy); doc.rect(m,y,CW,7,'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.text('SYNTHÈSE PAR ZONE',m+3,y+5); y+=10;
+  const zones = document.querySelectorAll('.cq-zone-card');
+  zones.forEach(zone=>{
+    if(y>270){doc.addPage();y=20;}
+    const zoneTitle = zone.querySelector('.cq-zone-title').childNodes[0].textContent.trim();
+    const zoneItems = zone.querySelectorAll('[data-cq-id]');
+    let zOk=0,zNok=0;
+    zoneItems.forEach(i=>{if(i.querySelector('.cq-radio.ok.active'))zOk++;else if(i.querySelector('.cq-radio.nok.active'))zNok++;});
+    const zTotal=zOk+zNok;
+    const bg = zNok===0&&zTotal>0?[220,252,231]:zNok>0?[254,226,226]:grey;
+    doc.setFillColor(...bg); doc.rect(m,y,CW,8,'F'); doc.setDrawColor(209,217,230); doc.rect(m,y,CW,8,'S');
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.text(zoneTitle,m+3,y+5.5);
+    doc.setFont('helvetica','normal'); doc.text(zTotal>0?`${zOk} OK / ${zNok} NOK`:'Non contrôlé',W-m-3,y+5.5,{align:'right'}); y+=8;
+  });
+  // Footer
+  doc.setFillColor(...navy); doc.rect(0,287,W,10,'F'); doc.setTextColor(160,190,230); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+  doc.text('Starsnett Services – 01 43 77 58 69 – contact@starsnett-services.com – SIRET : 523 021 665 00022',W/2,293,{align:'center'});
+  doc.save('Controle_Qualite_'+client.replace(/[^a-zA-Z0-9]/g,'_')+'_'+new Date().toISOString().split('T')[0]+'.pdf');
+  toast('✅ Rapport téléchargé !');
+}
+
+// ─── EMAIL / WHATSAPP ─────────────────────────────────────────
+function sendEmailDevis() {
+  const d = collectDevis();
+  if (!validateDevis(d)) return;
+  const subject = encodeURIComponent('[Devis '+d.num+'] '+d.nom+' – '+d.client+' '+d.mission);
+  const body = encodeURIComponent('DEVIS '+d.num+' – Starsnett Services\n\nCLIENT\n'+d.prenom+' '+d.nom+(d.societe?'\nSociété: '+d.societe:'')+'\nAdresse: '+d.adresse+'\nTél: '+d.tel+'\n\nPRESTATIONS\n'+d.prests.map(p=>'✓ '+p).join('\n')+'\n\nHT: '+d.ht+' €  |  TTC: '+d.ttc+' €\nRèglement: '+(d.reglement||'—')+'\n\nDate: '+(d.date||'—'));
+  window.location.href = 'mailto:starsnettinfo@gmail.com?subject='+subject+'&body='+body;
+  toast("✉️ Email ouvert...");
+}
+function sendWhatsAppDevis() {
+  const d = collectDevis();
+  if (!validateDevis(d)) return;
+  const msg = encodeURIComponent('*DEVIS '+d.num+' – Starsnett*\n\n*CLIENT*\n'+d.prenom+' '+d.nom+(d.societe?' – '+d.societe:'')+'\n📍 '+d.adresse+'\n📞 '+d.tel+'\n\n*PRESTATIONS*\n'+d.prests.map(p=>'✅ '+p).join('\n')+'\n\n*HT: '+d.ht+' € | TTC: '+d.ttc+' €*\nRèglement: '+(d.reglement||'—')+'\n📆 '+(d.date||'—'));
+  window.open('https://wa.me/?text='+msg,'_blank');
+  toast('💬 WhatsApp ouvert...');
+}
+function sendEmailCQ() {
+  const client = document.getElementById('cq-client').value || '—';
+  const agent = document.getElementById('cq-agent').value || '—';
+  const items = document.querySelectorAll('[data-cq-id]');
+  let ok=0,nok=0,nokList=[];
+  items.forEach(item=>{ if(item.querySelector('.cq-radio.ok.active'))ok++; else if(item.querySelector('.cq-radio.nok.active')){nok++;nokList.push(item.dataset.task);} });
+  const subject = encodeURIComponent('[Contrôle Qualité] '+client+' – '+new Date().toLocaleDateString('fr-FR'));
+  const body = encodeURIComponent('RAPPORT DE CONTRÔLE QUALITÉ – Starsnett Services\n\nSite: '+client+'\nAgent: '+agent+'\nDate: '+new Date().toLocaleDateString('fr-FR')+'\n\nCONFORMES: '+ok+' | NON-CONFORMES: '+nok+'\n\nNON-CONFORMES:\n'+(nokList.map(t=>'⚠ '+t).join('\n')||'Aucun'));
+  window.location.href = 'mailto:starsnettinfo@gmail.com?subject='+subject+'&body='+body;
+  toast("✉️ Email CQ ouvert...");
+}
+function sendWhatsAppCQ() {
+  const client = document.getElementById('cq-client').value || '—';
+  const items = document.querySelectorAll('[data-cq-id]');
+  let ok=0,nok=0; items.forEach(item=>{ if(item.querySelector('.cq-radio.ok.active'))ok++; else if(item.querySelector('.cq-radio.nok.active'))nok++; });
+  const total=ok+nok; const pct=total>0?Math.round((ok/total)*100):0;
+  const msg = encodeURIComponent('*Contrôle Qualité – Starsnett*\n📍 Site: '+client+'\n📅 '+new Date().toLocaleDateString('fr-FR')+'\n\n*Score: '+pct+'%* ('+ok+' OK / '+nok+' NOK)');
+  window.open('https://wa.me/?text='+msg,'_blank');
+  toast('💬 WhatsApp ouvert...');
+}
+
+// ─── TOAST ───────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
